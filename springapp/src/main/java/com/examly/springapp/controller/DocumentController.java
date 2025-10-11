@@ -11,9 +11,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 @RestController
 @RequestMapping("/api/documents")
@@ -23,11 +26,19 @@ public class DocumentController {
     private DocumentService documentService;
 
     @GetMapping
-    public List<DocumentResponseDTO> getAllDocuments() {
-        return documentService.getAllDocuments()
-                .stream()
-                .map(DocumentResponseDTO::new)
-                .collect(Collectors.toList());
+    public Page<DocumentResponseDTO> getAllDocuments(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        
+        Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+            Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+        
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Document> documents = documentService.getAllDocuments(pageable);
+        
+        return documents.map(DocumentResponseDTO::new);
     }
 
     @GetMapping("/{id}")

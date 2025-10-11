@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.io.File;
 import java.security.Provider.Service;
 import java.util.List;
+import org.springframework.data.domain.Page;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -56,11 +57,13 @@ class DocumentManagementSystemApplicationTests {
 
     @Test
     void day1_testGetAllDocuments() throws Exception {
-        Mockito.when(documentService.getAllDocuments()).thenReturn(List.of(sampleDoc));
+        Page<Document> mockPage = new org.springframework.data.domain.PageImpl<>(List.of(sampleDoc));
+        Mockito.when(documentService.getAllDocuments(Mockito.any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(mockPage);
 
         mockMvc.perform(get("/api/documents"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value("Test Document"));
+                .andExpect(jsonPath("$.content[0].title").value("Test Document"));
     }
 
     @Test

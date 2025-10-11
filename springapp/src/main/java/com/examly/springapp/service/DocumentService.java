@@ -6,6 +6,8 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class DocumentService {
@@ -15,6 +17,10 @@ public class DocumentService {
 
     public List<Document> getAllDocuments() {
         return documentRepository.findAll();
+    }
+
+    public Page<Document> getAllDocuments(Pageable pageable) {
+        return documentRepository.findAll(pageable);
     }
 
     public Document getDocumentById(Long id) {
