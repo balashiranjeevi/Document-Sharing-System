@@ -50,6 +50,7 @@ function App() {
                   <Dashboard />
                 </ProtectedRoute>
               } />
+              <Route path="/demo" element={<Dashboard />} />
               <Route path="/admin" element={
                 <ProtectedRoute adminOnly={true}>
                   <Admin />
