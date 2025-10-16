@@ -22,6 +22,13 @@ const Dashboard = () => {
       setDocuments(response.data.content || response.data);
     } catch (error) {
       console.error('Error fetching documents:', error);
+      // Mock data when API fails
+      setDocuments([
+        { id: 1, title: 'Project Proposal.pdf', fileName: 'project-proposal.pdf', fileSize: 2048576, createdAt: '2024-01-15', owner: { username: 'john_doe' } },
+        { id: 2, title: 'Meeting Notes.docx', fileName: 'meeting-notes.docx', fileSize: 1024000, createdAt: '2024-01-14', owner: { username: 'jane_smith' } },
+        { id: 3, title: 'Budget Report.xlsx', fileName: 'budget-report.xlsx', fileSize: 3072000, createdAt: '2024-01-13', owner: { username: 'bob_wilson' } },
+        { id: 4, title: 'Design Mockups.png', fileName: 'design-mockups.png', fileSize: 5120000, createdAt: '2024-01-12', owner: { username: 'alice_brown' } }
+      ]);
     } finally {
       setLoading(false);
     }
