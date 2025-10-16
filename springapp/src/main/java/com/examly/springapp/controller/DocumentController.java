@@ -26,19 +26,29 @@ public class DocumentController {
     private DocumentService documentService;
 
     @GetMapping
-    public Page<DocumentResponseDTO> getAllDocuments(
+    public ResponseEntity<Map<String, Object>> getAllDocuments(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir) {
+            @RequestParam(defaultValue = "asc") String sortDir,
+            @RequestParam(required = false) String search) {
         
-        Sort sort = sortDir.equalsIgnoreCase("desc") ? 
-            Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+        Page<Document> documents = documentService.getAllDocuments(page, size, sortBy, sortDir, search);
+        List<DocumentResponseDTO> content = documents.getContent().stream()
+            .map(DocumentResponseDTO::new)
+            .collect(Collectors.toList());
         
-        Pageable pageable = PageRequest.of(page, size, sort);
-        Page<Document> documents = documentService.getAllDocuments(pageable);
+        Map<String, Object> response = Map.of(
+            "content", content,
+            "totalElements", documents.getTotalElements(),
+            "totalPages", documents.getTotalPages(),
+            "currentPage", documents.getNumber(),
+            "size", documents.getSize(),
+            "hasNext", documents.hasNext(),
+            "hasPrevious", documents.hasPrevious()
+        );
         
-        return documents.map(DocumentResponseDTO::new);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
@@ -47,23 +57,68 @@ public class DocumentController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createDocument(@RequestBody Document document) {
+    public ResponseEntity<?> createDocument(@Valid @RequestBody DocumentRequestDTO documentRequest) {
         try {
+            Document document = new Document();
+            document.setTitle(documentRequest.getTitle());
+            document.setFileName(documentRequest.getFileName());
+            document.setFileType(documentRequest.getFileType());
+            document.setOwnerId(documentRequest.getOwnerId());
+            document.setVisibility(Document.Visibility.PRIVATE);
+            
             Document created = documentService.createDocument(document);
             return ResponseEntity.status(HttpStatus.CREATED).body(new DocumentResponseDTO(created));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Invalid document data"));
+            return ResponseEntity.badRequest().body(Map.of("message", "Invalid document data: " + e.getMessage()));
         }
     }
 
     @PutMapping("/{id}")
-    public DocumentResponseDTO updateDocument(@PathVariable Long id, @RequestBody Document document) {
-        return new DocumentResponseDTO(documentService.updateDocument(id, document));
+    public ResponseEntity<?> updateDocument(@PathVariable Long id, @Valid @RequestBody DocumentRequestDTO documentRequest) {
+        try {
+            Document document = new Document();
+            document.setTitle(documentRequest.getTitle());
+            document.setFileName(documentRequest.getFileName());
+            document.setFileType(documentRequest.getFileType());
+            
+            Document updated = documentService.updateDocument(id, document);
+            return ResponseEntity.ok(new DocumentResponseDTO(updated));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Update failed: " + e.getMessage()));
+        }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> deleteDocument(@PathVariable Long id) {
         documentService.deleteDocument(id);
         return ResponseEntity.ok(Map.of("message", "Document deleted successfully"));
+    }
+
+    @GetMapping("/{id}/download")
+    public ResponseEntity<String> downloadDocument(@PathVariable Long id) {
+        Document document = documentService.getDocumentById(id);
+        return ResponseEntity.ok()
+            .header("Content-Disposition", "attachment; filename=\"" + document.getFileName() + "\"")
+            .body("File content for: " + document.getFileName());
+    }
+
+    @PostMapping("/upload")
+    public ResponseEntity<DocumentResponseDTO> uploadDocument(
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
+            @RequestParam("title") String title) {
+        try {
+            Document document = new Document();
+            document.setTitle(title);
+            document.setFileName(file.getOriginalFilename());
+            document.setFileType(file.getContentType());
+            document.setSize(file.getSize());
+            document.setOwnerId(1L);
+            document.setVisibility(Document.Visibility.PRIVATE);
+            
+            Document saved = documentService.createDocument(document);
+            return ResponseEntity.ok(new DocumentResponseDTO(saved));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }

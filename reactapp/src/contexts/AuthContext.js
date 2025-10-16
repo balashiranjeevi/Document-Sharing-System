@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import authService from '../services/authService';
+import axios from 'axios';
 
 const AuthContext = createContext();
 
@@ -16,22 +16,23 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = authService.getToken();
-    const savedUser = authService.getCurrentUser();
+    const token = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
     
     if (token && savedUser) {
       try {
-        // Verify token is not expired
         const payload = JSON.parse(atob(token.split('.')[1]));
         const currentTime = Date.now() / 1000;
         
         if (payload.exp > currentTime) {
-          setUser(savedUser);
+          setUser(JSON.parse(savedUser));
         } else {
-          authService.logout();
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
         }
       } catch (error) {
-        authService.logout();
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
       }
     }
     setLoading(false);
@@ -39,9 +40,12 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      const response = await authService.login(credentials);
-      setUser(response.user);
-      return response;
+      const response = await axios.post('/api/auth/login', credentials);
+      const { token, user } = response.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      setUser(user);
+      return response.data;
     } catch (error) {
       throw error;
     }
@@ -49,15 +53,16 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const response = await authService.register(userData);
-      return response;
+      const response = await axios.post('/api/users/register', userData);
+      return response.data;
     } catch (error) {
       throw error;
     }
   };
 
   const logout = () => {
-    authService.logout();
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setUser(null);
   };
 

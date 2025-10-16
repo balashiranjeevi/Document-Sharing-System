@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import Admin from './pages/Admin';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function ProtectedRoute({ children, adminOnly = false }) {
   const { user } = useAuth();
@@ -29,11 +30,12 @@ function PublicRoute({ children }) {
 
 function App() {
   return (
-    <ToastProvider>
-      <AuthProvider>
-        <Router>
-          <div className="App">
-            <Routes>
+    <ErrorBoundary>
+      <ToastProvider>
+        <AuthProvider>
+          <Router>
+            <div className="App">
+              <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={
                 <PublicRoute>
@@ -57,11 +59,12 @@ function App() {
                 </ProtectedRoute>
               } />
               <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-          </div>
-        </Router>
-      </AuthProvider>
-    </ToastProvider>
+              </Routes>
+            </div>
+          </Router>
+        </AuthProvider>
+      </ToastProvider>
+    </ErrorBoundary>
   );
 }
 

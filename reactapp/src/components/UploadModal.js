@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { FiUpload, FiX, FiFile, FiCheck, FiAlertCircle } from 'react-icons/fi';
-import { documentService } from '../utils/api';
+import axios from 'axios';
 
 const UploadModal = ({ onClose, onSuccess }) => {
   const [files, setFiles] = useState([]);
@@ -74,7 +74,12 @@ const UploadModal = ({ onClose, onSuccess }) => {
           }));
         }, 200);
 
-        await documentService.create(formData);
+        await axios.post('/api/documents', {
+          title: fileItem.file.name,
+          fileName: fileItem.file.name,
+          fileType: fileItem.file.type,
+          ownerId: 1
+        });
         
         clearInterval(progressInterval);
         setFiles(prev => prev.map(f => 

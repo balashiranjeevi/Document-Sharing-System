@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -26,6 +26,8 @@ export const documentService = {
   create: (data) => api.post('/documents', data),
   update: (id, data) => api.put(`/documents/${id}`, data),
   delete: (id) => api.delete(`/documents/${id}`),
+  search: (query, page = 0, size = 10, sortBy = 'id', sortDir = 'asc') => 
+    api.get('/documents', { params: { search: query, page, size, sortBy, sortDir } })
 };
 
 export const folderService = {
@@ -34,5 +36,16 @@ export const folderService = {
   update: (id, data) => api.put(`/folders/${id}`, data),
   delete: (id) => api.delete(`/folders/${id}`),
 };
+
+// API methods for testing compatibility
+const apiMethods = {
+  getAllDocuments: (params = {}) => axios.get('/documents', { params }).then(res => res.data),
+  getDocumentById: (id) => axios.get(`/documents/${id}`).then(res => res.data),
+  createDocument: (data) => axios.post('/documents', data).then(res => res.data),
+  updateDocument: (id, data) => axios.put(`/documents/${id}`, data).then(res => res.data),
+  deleteDocument: (id) => axios.delete(`/documents/${id}`).then(res => res.data)
+};
+
+Object.assign(api, apiMethods);
 
 export default api;

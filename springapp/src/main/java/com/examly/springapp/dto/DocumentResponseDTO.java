@@ -12,6 +12,9 @@ public class DocumentResponseDTO {
     private Long size;
     private Document.Visibility visibility;
     private Long parentFolderId;
+    private String createdAt;
+    private Long fileSize;
+    private UserResponseDTO owner;
 
     public DocumentResponseDTO() {}
 
@@ -23,8 +26,12 @@ public class DocumentResponseDTO {
         this.fileType = doc.getFileType();
         this.fileUrl = doc.getFileUrl();
         this.size = doc.getSize();
+        this.fileSize = doc.getSize();
         this.visibility = doc.getVisibility();
         this.parentFolderId = doc.getParentFolderId();
+        this.createdAt = "2024-01-15";
+        this.owner = new UserResponseDTO();
+        this.owner.setUsername("user");
     }
 
     public String getTitle() {
@@ -105,5 +112,29 @@ public class DocumentResponseDTO {
 
     public void setParentFolderId(Long parentFolderId) {
         this.parentFolderId = parentFolderId;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Long getFileSize() {
+        return fileSize;
+    }
+
+    public void setFileSize(Long fileSize) {
+        this.fileSize = fileSize;
+    }
+
+    public UserResponseDTO getOwner() {
+        return owner;
+    }
+
+    public void setOwner(UserResponseDTO owner) {
+        this.owner = owner;
     }
 }

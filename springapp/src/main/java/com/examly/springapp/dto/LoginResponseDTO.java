@@ -1,14 +1,14 @@
 package com.examly.springapp.dto;
 
+import com.examly.springapp.model.User;
+
 public class LoginResponseDTO {
     private String token;
-    private String email;
-    private String name;
+    private UserResponseDTO user;
 
-    public LoginResponseDTO(String token, String email, String name) {
+    public LoginResponseDTO(String token, User user) {
         this.token = token;
-        this.email = email;
-        this.name = name;
+        this.user = new UserResponseDTO(user);
     }
 
     public String getToken() {
@@ -19,19 +19,11 @@ public class LoginResponseDTO {
         this.token = token;
     }
 
-    public String getEmail() {
-        return email;
+    public UserResponseDTO getUser() {
+        return user;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+    public void setUser(UserResponseDTO user) {
+        this.user = user;
     }
 }

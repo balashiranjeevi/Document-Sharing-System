@@ -1,28 +1,63 @@
 package com.examly.springapp.dto;
 
-import com.examly.springapp.model.Document;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 public class DocumentRequestDTO {
-    private Long ownerId;
-    private String name;
-    private String fileType;
-    private String fileUrl;
-    private Long size;
-    private Document.Visibility visibility;
-    private Long parentFolderId;
+    @NotBlank(message = "Title is required")
+    @Size(max = 255, message = "Title must not exceed 255 characters")
+    private String title;
 
-    public Long getOwnerId() { return ownerId; }
-    public void setOwnerId(Long ownerId) { this.ownerId = ownerId; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getFileType() { return fileType; }
-    public void setFileType(String fileType) { this.fileType = fileType; }
-    public String getFileUrl() { return fileUrl; }
-    public void setFileUrl(String fileUrl) { this.fileUrl = fileUrl; }
-    public Long getSize() { return size; }
-    public void setSize(Long size) { this.size = size; }
-    public Document.Visibility getVisibility() { return visibility; }
-    public void setVisibility(Document.Visibility visibility) { this.visibility = visibility; }
-    public Long getParentFolderId() { return parentFolderId; }
-    public void setParentFolderId(Long parentFolderId) { this.parentFolderId = parentFolderId; }
+    @NotBlank(message = "File name is required")
+    @Size(max = 255, message = "File name must not exceed 255 characters")
+    private String fileName;
+
+    @NotBlank(message = "File type is required")
+    private String fileType;
+
+    @NotNull(message = "Owner ID is required")
+    private Long ownerId;
+
+    private Boolean isPublic;
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public String getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(String fileType) {
+        this.fileType = fileType;
+    }
+
+    public Long getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(Long ownerId) {
+        this.ownerId = ownerId;
+    }
+
+    public Boolean getIsPublic() {
+        return isPublic;
+    }
+
+    public void setIsPublic(Boolean isPublic) {
+        this.isPublic = isPublic;
+    }
 }

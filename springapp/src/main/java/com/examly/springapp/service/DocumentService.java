@@ -15,8 +15,16 @@ public class DocumentService {
     @Autowired
     private DocumentRepository documentRepository;
 
-    public List<Document> getAllDocuments() {
-        return documentRepository.findAll();
+    public Page<Document> getAllDocuments(int page, int size, String sortBy, String sortDir, String search) {
+        Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+            Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+        
+        Pageable pageable = PageRequest.of(page, size, sort);
+        
+        if (search != null && !search.isEmpty()) {
+            return documentRepository.findByTitleContainingIgnoreCase(search, pageable);
+        }
+        return documentRepository.findAll(pageable);
     }
 
     public Page<Document> getAllDocuments(Pageable pageable) {

@@ -7,6 +7,8 @@ public class UserResponseDTO {
     private String name;
     private String email;
     private User.Role role;
+    private String status = "ACTIVE";
+    private String username;
 
     public UserResponseDTO() {}
 
@@ -15,6 +17,8 @@ public class UserResponseDTO {
         this.name = user.getName();
         this.email = user.getEmail();
         this.role = user.getRole();
+        this.username = user.getName();
+        this.status = "ACTIVE";
     }
 
     public Long getId() {
@@ -47,5 +51,21 @@ public class UserResponseDTO {
 
     public void setRole(User.Role role) {
         this.role = role;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

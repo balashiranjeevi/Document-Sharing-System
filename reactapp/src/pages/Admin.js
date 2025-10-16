@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FiUsers, FiFile, FiActivity, FiSettings } from 'react-icons/fi';
 import Header from '../components/Header';
+import LoadingSpinner from '../components/LoadingSpinner';
+import axios from 'axios';
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('users');
@@ -11,29 +13,54 @@ const Admin = () => {
     totalStorage: 0,
     activeUsers: 0
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchStats();
-    fetchUsers();
+    const loadData = async () => {
+      setLoading(true);
+      await Promise.all([fetchStats(), fetchUsers()]);
+      setLoading(false);
+    };
+    loadData();
   }, []);
 
   const fetchStats = async () => {
-    // Mock data - replace with actual API call
-    setStats({
-      totalUsers: 156,
-      totalDocuments: 2847,
-      totalStorage: '12.4 GB',
-      activeUsers: 89
-    });
+    try {
+      const response = await axios.get('/api/stats');
+      setStats(response.data);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      setStats({
+        totalUsers: 0,
+        totalDocuments: 0,
+        totalStorage: '0 GB',
+        activeUsers: 0
+      });
+    }
   };
 
   const fetchUsers = async () => {
-    // Mock data - replace with actual API call
-    setUsers([
-      { id: 1, username: 'john_doe', email: 'john@example.com', role: 'USER', status: 'ACTIVE', createdAt: '2024-01-15' },
-      { id: 2, username: 'jane_smith', email: 'jane@example.com', role: 'ADMIN', status: 'ACTIVE', createdAt: '2024-01-10' },
-      { id: 3, username: 'bob_wilson', email: 'bob@example.com', role: 'USER', status: 'INACTIVE', createdAt: '2024-01-05' },
-    ]);
+    try {
+      setError(null);
+      const response = await axios.get('/api/users');
+      setUsers(response.data);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setError('Failed to load users');
+      setUsers([]);
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) return;
+    
+    try {
+      await axios.delete(`/api/users/${userId}`);
+      await fetchUsers();
+    } catch (error) {
+      setError('Failed to delete user');
+    }
   };
 
   const tabs = [
@@ -101,7 +128,12 @@ const Admin = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <button className="text-blue-600 hover:text-blue-700 mr-3">Edit</button>
-                  <button className="text-red-600 hover:text-red-700">Delete</button>
+                  <button 
+                    onClick={() => handleDeleteUser(user.id)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))}
@@ -152,9 +184,28 @@ const Admin = () => {
           </nav>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+            <button 
+              onClick={() => { setError(null); fetchUsers(); fetchStats(); }} 
+              className="ml-2 underline hover:no-underline"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
         {/* Tab Content */}
         <div>
-          {activeTab === 'users' && <UserTable />}
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <LoadingSpinner size="lg" />
+            </div>
+          ) : (
+            <>
+              {activeTab === 'users' && <UserTable />}
           {activeTab === 'documents' && (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Document Management</h3>
@@ -172,6 +223,8 @@ const Admin = () => {
               <h3 className="text-lg font-medium text-gray-900 mb-4">System Settings</h3>
               <p className="text-gray-600">System configuration options coming soon...</p>
             </div>
+          )}
+            </>
           )}
         </div>
       </div>

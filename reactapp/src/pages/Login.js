@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { FiCloud, FiEye, FiEyeOff } from 'react-icons/fi';
+import { validateEmail, validatePassword } from '../utils/validation';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -13,6 +15,18 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate inputs
+    if (!validateEmail(formData.email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+    
+    if (!validatePassword(formData.password)) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -20,7 +34,7 @@ const Login = () => {
       await login(formData);
       navigate('/dashboard');
     } catch (error) {
-      setError('Invalid email or password');
+      setError(error.response?.data?.message || 'Invalid email or password');
     } finally {
       setLoading(false);
     }
@@ -82,9 +96,10 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full btn-primary disabled:opacity-50"
+            className="w-full btn-primary disabled:opacity-50 flex items-center justify-center space-x-2"
           >
-            {loading ? 'Signing in...' : 'Sign in'}
+            {loading && <LoadingSpinner size="sm" />}
+            <span>{loading ? 'Signing in...' : 'Sign in'}</span>
           </button>
 
           <p className="text-center text-sm text-gray-600">
