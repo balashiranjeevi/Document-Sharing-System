@@ -49,4 +49,10 @@ public class UserService {
         }
         userRepository.deleteById(id);
     }
+
+    public User updateUserStatus(Long id, String status) {
+        User user = getUserById(id);
+        user.setStatus(status);
+        return userRepository.save(user);
+    }
 }

@@ -2,14 +2,28 @@ import React, { useState } from 'react';
 import { FiSearch, FiUpload, FiGrid, FiList, FiUser, FiLogOut } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
 
-const Header = ({ onUpload, onSearch, viewMode, onViewModeChange }) => {
+const Header = ({ onUpload, onSearch, viewMode = 'grid', onViewModeChange }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showProfile, setShowProfile] = useState(false);
   const { user, logout } = useAuth();
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
-    onSearch(e.target.value);
+    if (onSearch) {
+      onSearch(e.target.value);
+    }
+  };
+
+  const handleUpload = () => {
+    if (onUpload) {
+      onUpload();
+    }
+  };
+
+  const handleViewModeChange = (mode) => {
+    if (onViewModeChange) {
+      onViewModeChange(mode);
+    }
   };
 
   return (
@@ -35,13 +49,13 @@ const Header = ({ onUpload, onSearch, viewMode, onViewModeChange }) => {
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <button
-              onClick={() => onViewModeChange('grid')}
+              onClick={() => handleViewModeChange('grid')}
               className={`p-2 rounded ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
             >
               <FiGrid size={18} />
             </button>
             <button
-              onClick={() => onViewModeChange('list')}
+              onClick={() => handleViewModeChange('list')}
               className={`p-2 rounded ${viewMode === 'list' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
             >
               <FiList size={18} />
@@ -49,7 +63,7 @@ const Header = ({ onUpload, onSearch, viewMode, onViewModeChange }) => {
           </div>
 
           <button
-            onClick={onUpload}
+            onClick={handleUpload}
             className="btn-primary flex items-center space-x-2"
           >
             <FiUpload size={18} />

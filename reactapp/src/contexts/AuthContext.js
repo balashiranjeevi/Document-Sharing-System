@@ -40,23 +40,32 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      const response = await axios.post('http://localhost:8080/api/auth/login', credentials);
+      const API_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+      const response = await axios.post(`${API_URL}/auth/login`, credentials);
       const { token, user } = response.data;
+      
+      if (!token || !user) {
+        throw new Error('Invalid response from server');
+      }
+      
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       setUser(user);
       return response.data;
     } catch (error) {
-      throw error;
+      console.error('Login error:', error);
+      throw new Error(error.response?.data?.message || 'Login failed');
     }
   };
 
   const register = async (userData) => {
     try {
-      const response = await axios.post('http://localhost:8080/api/auth/register', userData);
+      const API_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+      const response = await axios.post(`${API_URL}/auth/register`, userData);
       return response.data;
     } catch (error) {
-      throw error;
+      console.error('Registration error:', error);
+      throw new Error(error.response?.data?.message || 'Registration failed');
     }
   };
 

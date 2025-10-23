@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { FiUpload, FiX, FiFile, FiCheck, FiAlertCircle } from 'react-icons/fi';
-import axios from 'axios';
+import api from '../utils/api';
 
 const UploadModal = ({ onClose, onSuccess }) => {
   const [files, setFiles] = useState([]);
@@ -74,11 +74,10 @@ const UploadModal = ({ onClose, onSuccess }) => {
           }));
         }, 200);
 
-        await axios.post('/api/documents', {
-          title: fileItem.file.name,
-          fileName: fileItem.file.name,
-          fileType: fileItem.file.type,
-          ownerId: 1
+        await api.post('/documents/upload', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
         });
         
         clearInterval(progressInterval);
@@ -99,9 +98,12 @@ const UploadModal = ({ onClose, onSuccess }) => {
 
     setUploading(false);
     
-    // Close modal after successful uploads
-    if (files.every(f => f.status === 'success' || f.status === 'error')) {
+    // Show success notification and reset for next upload
+    const successCount = files.filter(f => f.status === 'success').length;
+    if (successCount > 0) {
       setTimeout(() => {
+        alert(`${successCount} file(s) uploaded successfully!`);
+        setFiles([]); // Reset files for next upload
         onSuccess();
       }, 1000);
     }
@@ -214,7 +216,7 @@ const UploadModal = ({ onClose, onSuccess }) => {
           </button>
           <button
             onClick={uploadFiles}
-            disabled={!files.length || uploading || files.every(f => f.status !== 'pending')}
+            disabled={!files.length || uploading}
             className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {uploading ? 'Uploading...' : `Upload ${files.filter(f => f.status === 'pending').length} files`}

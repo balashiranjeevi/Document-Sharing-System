@@ -24,6 +24,16 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    private String status = "ACTIVE";
+
+    @Column(name = "created_at")
+    private java.time.LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = java.time.LocalDateTime.now();
+    }
+
     public enum Role {
         ADMIN, USER
     }
@@ -66,5 +76,25 @@ public class User {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public java.time.LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(java.time.LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getUsername() {
+        return name;
     }
 }

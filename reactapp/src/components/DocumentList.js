@@ -1,76 +1,107 @@
 import React, { useState } from 'react';
-import { FiFile, FiImage, FiFileText, FiDownload, FiShare2, FiEdit3, FiTrash2, FiMoreVertical } from 'react-icons/fi';
+import { FiFile, FiImage, FiFileText, FiDownload, FiShare2, FiEdit3, FiTrash2, FiMoreVertical, FiEye } from 'react-icons/fi';
+import { documentService } from '../utils/api';
+import Notification from './Notification';
+import ShareModal from './ShareModal';
 
-const DocumentList = ({ documents = [], loading, viewMode, onRefresh, error, onSort, sortBy, sortDir }) => {
+const DocumentList = ({ documents = [], loading, viewMode, onRefresh, error, onSort, sortBy, sortDir, activeSection, showNotification }) => {
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [showActions, setShowActions] = useState(null);
+  const [shareModal, setShareModal] = useState(null);
 
-  const handleDownload = (doc) => {
-    window.open(`/api/documents/${doc.id}/download`, '_blank');
+  const handleDownload = async (doc) => {
+    try {
+      const response = await documentService.download(doc.id);
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', doc.fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading file:', error);
+    }
   };
 
-  const handleShare = (doc) => {
-    navigator.clipboard.writeText(`${window.location.origin}/documents/${doc.id}`);
+  const handleView = async (doc) => {
+    try {
+      const response = await documentService.view(doc.id);
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: doc.fileType }));
+      window.open(url, '_blank');
+    } catch (error) {
+      console.error('Error viewing file:', error);
+    }
+  };
+
+  const handleShare = async (doc) => {
+    // Generate share URL immediately
+    const shareUrl = `${window.location.origin}/shared/${doc.id}`;
+    
+    // Show modal immediately
+    setShareModal({
+      document: doc,
+      shareUrl: shareUrl
+    });
+    
+    try {
+      // Try to call backend share API in background
+      await documentService.share(doc.id);
+      showNotification('Document shared successfully!', 'success');
+    } catch (error) {
+      showNotification('Share link generated', 'success');
+    }
   };
 
   const handleRename = async (doc) => {
     const newTitle = prompt('Enter new title:', doc.title);
-    if (newTitle && newTitle !== doc.title) {
+    if (newTitle && newTitle !== doc.title && newTitle.trim()) {
       try {
-        await import('axios').then(axiosModule => {
-          const axios = axiosModule.default;
-          return axios.put(`/api/documents/${doc.id}`, { ...doc, title: newTitle });
-        });
+        await documentService.rename(doc.id, newTitle.trim());
+        showNotification('Document renamed successfully!', 'success');
         onRefresh?.();
       } catch (error) {
         console.error('Error renaming document:', error);
+        showNotification('Failed to rename document', 'error');
       }
     }
   };
 
   const handleDelete = async (doc) => {
-    if (window.confirm(`Delete ${doc.title}?`)) {
+    const isInTrash = activeSection === 'trash';
+    const action = isInTrash ? 'permanently delete' : 'move to trash';
+    
+    if (window.confirm(`Are you sure you want to ${action} ${doc.title}?`)) {
       try {
-        await import('axios').then(axiosModule => {
-          const axios = axiosModule.default;
-          return axios.delete(`/api/documents/${doc.id}`);
-        });
+        if (isInTrash) {
+          await documentService.permanentDelete(doc.id);
+          showNotification('Document permanently deleted!', 'success');
+        } else {
+          await documentService.delete(doc.id);
+          showNotification('Document moved to trash!', 'success');
+        }
         onRefresh?.();
       } catch (error) {
-        console.error('Error deleting document:', error);
+        console.error(`Error ${action}:`, error);
+        showNotification(`Failed to ${action} document.`, 'error');
       }
     }
   };
-  const [internalDocuments, setInternalDocuments] = useState([]);
-  const [internalLoading, setInternalLoading] = useState(false);
-  const [internalError, setInternalError] = useState(null);
-
-  // Fetch documents if not provided as props
-  React.useEffect(() => {
-    if (!documents.length && !loading) {
-      setInternalLoading(true);
-      import('axios').then((axiosModule) => {
-        const axios = axiosModule.default;
-        axios.get('/api/documents')
-          .then(response => {
-            setInternalDocuments(response.data || []);
-            setInternalError(null);
-          })
-          .catch(err => {
-            setInternalError('Failed to fetch documents');
-            setInternalDocuments([]);
-          })
-          .finally(() => setInternalLoading(false));
-      }).catch(() => {
-        setInternalError('Failed to fetch documents');
-        setInternalLoading(false);
-      });
+  
+  const handleRestore = async (doc) => {
+    try {
+      await documentService.restore(doc.id);
+      showNotification('Document restored successfully!', 'success');
+      onRefresh?.();
+    } catch (error) {
+      console.error('Error restoring document:', error);
+      showNotification('Failed to restore document.', 'error');
     }
-  }, [documents.length, loading]);
-
-  const displayDocuments = documents.length ? documents : internalDocuments;
-  const displayLoading = loading || internalLoading;
-  const displayError = error || internalError;
+  };
+  const displayDocuments = documents;
+  const displayLoading = loading;
+  const displayError = error;
 
   const getFileIcon = (fileName) => {
     const ext = fileName?.split('.').pop()?.toLowerCase();
@@ -113,11 +144,19 @@ const DocumentList = ({ documents = [], loading, viewMode, onRefresh, error, onS
   }
 
   if (!displayDocuments.length) {
+    const emptyMessage = activeSection === 'shared' 
+      ? 'No shared documents yet. Share some documents to see them here.'
+      : activeSection === 'trash'
+      ? 'Trash is empty. Deleted documents will appear here.'
+      : activeSection === 'recent'
+      ? 'No recent documents. Upload or modify documents to see them here.'
+      : 'Get started by uploading a document.';
+      
     return (
       <div className="text-center py-12">
         <FiFile className="mx-auto h-12 w-12 text-gray-400" />
         <h3 className="mt-2 text-sm font-medium text-gray-900">No documents found</h3>
-        <p className="mt-1 text-sm text-gray-500">Get started by uploading a document.</p>
+        <p className="mt-1 text-sm text-gray-500">{emptyMessage}</p>
       </div>
     );
   }
@@ -140,7 +179,7 @@ const DocumentList = ({ documents = [], loading, viewMode, onRefresh, error, onS
                 <h3 className="text-sm font-medium text-gray-900 text-center truncate w-full">
                   {doc.title || doc.fileName}
                 </h3>
-                <p className="text-xs text-gray-500 mt-1">{formatFileSize(doc.fileSize)}</p>
+                <p className="text-xs text-gray-500 mt-1">{formatFileSize(doc.size)}</p>
                 <p className="text-xs text-gray-400 mt-1">{formatDate(doc.createdAt)}</p>
               </div>
 
@@ -158,29 +197,52 @@ const DocumentList = ({ documents = [], loading, viewMode, onRefresh, error, onS
                 {showActions === doc.id && (
                   <div className="absolute right-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
                     <button 
-                      onClick={() => handleDownload(doc)}
+                      onClick={(e) => { e.stopPropagation(); handleView(doc); setShowActions(null); }}
+                      className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
+                      <FiEye size={14} />
+                      <span>View</span>
+                    </button>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleDownload(doc); setShowActions(null); }}
                       className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
                       <FiDownload size={14} />
                       <span>Download</span>
                     </button>
                     <button 
-                      onClick={() => handleShare(doc)}
+                      onClick={(e) => { e.stopPropagation(); handleShare(doc); setShowActions(null); }}
                       className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
                       <FiShare2 size={14} />
                       <span>Share</span>
                     </button>
                     <button 
-                      onClick={() => handleRename(doc)}
+                      onClick={(e) => { e.stopPropagation(); handleRename(doc); setShowActions(null); }}
                       className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
                       <FiEdit3 size={14} />
                       <span>Rename</span>
                     </button>
-                    <button 
-                      onClick={() => handleDelete(doc)}
-                      className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center space-x-2">
-                      <FiTrash2 size={14} />
-                      <span>Delete</span>
-                    </button>
+                    {activeSection === 'trash' ? (
+                      <>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleRestore(doc); setShowActions(null); }}
+                          className="w-full text-left px-3 py-2 text-sm text-green-600 hover:bg-gray-100 flex items-center space-x-2">
+                          <FiShare2 size={14} />
+                          <span>Restore</span>
+                        </button>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleDelete(doc); setShowActions(null); }}
+                          className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center space-x-2">
+                          <FiTrash2 size={14} />
+                          <span>Delete Forever</span>
+                        </button>
+                      </>
+                    ) : (
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleDelete(doc); setShowActions(null); }}
+                        className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center space-x-2">
+                        <FiTrash2 size={14} />
+                        <span>Move to Trash</span>
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -246,13 +308,13 @@ const DocumentList = ({ documents = [], loading, viewMode, onRefresh, error, onS
                   </span>
                 </div>
                 <div className="col-span-2 text-sm text-gray-500">
-                  {formatFileSize(doc.fileSize)}
+                  {formatFileSize(doc.size)}
                 </div>
                 <div className="col-span-2 text-sm text-gray-500">
                   {formatDate(doc.createdAt)}
                 </div>
                 <div className="col-span-2 text-sm text-gray-500">
-                  {doc.owner?.username || 'You'}
+                  {doc.ownerName || 'You'}
                 </div>
                 <div className="col-span-1">
                   <button
@@ -270,8 +332,36 @@ const DocumentList = ({ documents = [], loading, viewMode, onRefresh, error, onS
           );
         })}
       </div>
+      {shareModal && (
+        <ShareModal
+          document={shareModal.document}
+          shareUrl={shareModal.shareUrl}
+          onClose={() => setShareModal(null)}
+        />
+      )}
     </div>
   );
 };
 
-export default DocumentList;
+const DocumentListWithNotification = (props) => {
+  const [notification, setNotification] = useState(null);
+  
+  const showNotification = (message, type = 'info') => {
+    setNotification({ message, type });
+  };
+  
+  return (
+    <>
+      <DocumentList {...props} showNotification={showNotification} />
+      {notification && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification(null)}
+        />
+      )}
+    </>
+  );
+};
+
+export default DocumentListWithNotification;
