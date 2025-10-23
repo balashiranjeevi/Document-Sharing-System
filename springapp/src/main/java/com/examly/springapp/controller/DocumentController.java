@@ -32,22 +32,32 @@ public class DocumentController {
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String sortDir,
             @RequestParam(required = false) String search) {
-        
+
         Page<Document> documents = documentService.getAllDocuments(page, size, sortBy, sortDir, search);
+        if (documents == null) {
+            return ResponseEntity.ok(Map.of(
+                    "content", List.of(),
+                    "totalElements", 0L,
+                    "totalPages", 0,
+                    "currentPage", 0,
+                    "size", size,
+                    "hasNext", false,
+                    "hasPrevious", false));
+        }
+
         List<DocumentResponseDTO> content = documents.getContent().stream()
-            .map(DocumentResponseDTO::new)
-            .collect(Collectors.toList());
-        
+                .map(DocumentResponseDTO::new)
+                .collect(Collectors.toList());
+
         Map<String, Object> response = Map.of(
-            "content", content,
-            "totalElements", documents.getTotalElements(),
-            "totalPages", documents.getTotalPages(),
-            "currentPage", documents.getNumber(),
-            "size", documents.getSize(),
-            "hasNext", documents.hasNext(),
-            "hasPrevious", documents.hasPrevious()
-        );
-        
+                "content", content,
+                "totalElements", documents.getTotalElements(),
+                "totalPages", documents.getTotalPages(),
+                "currentPage", documents.getNumber(),
+                "size", documents.getSize(),
+                "hasNext", documents.hasNext(),
+                "hasPrevious", documents.hasPrevious());
+
         return ResponseEntity.ok(response);
     }
 
@@ -58,29 +68,26 @@ public class DocumentController {
 
     @PostMapping
     public ResponseEntity<?> createDocument(@Valid @RequestBody DocumentRequestDTO documentRequest) {
-        try {
-            Document document = new Document();
-            document.setTitle(documentRequest.getTitle());
-            document.setFileName(documentRequest.getFileName());
-            document.setFileType(documentRequest.getFileType());
-            document.setOwnerId(documentRequest.getOwnerId());
-            document.setVisibility(Document.Visibility.PRIVATE);
-            
-            Document created = documentService.createDocument(document);
-            return ResponseEntity.status(HttpStatus.CREATED).body(new DocumentResponseDTO(created));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Invalid document data: " + e.getMessage()));
-        }
+        Document document = new Document();
+        document.setTitle(documentRequest.getTitle());
+        document.setFileName(documentRequest.getFileName());
+        document.setFileType(documentRequest.getFileType());
+        document.setOwnerId(documentRequest.getOwnerId());
+        document.setVisibility(Document.Visibility.PRIVATE);
+
+        Document created = documentService.createDocument(document);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new DocumentResponseDTO(created));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateDocument(@PathVariable Long id, @Valid @RequestBody DocumentRequestDTO documentRequest) {
+    public ResponseEntity<?> updateDocument(@PathVariable Long id,
+            @Valid @RequestBody DocumentRequestDTO documentRequest) {
         try {
             Document document = new Document();
             document.setTitle(documentRequest.getTitle());
             document.setFileName(documentRequest.getFileName());
             document.setFileType(documentRequest.getFileType());
-            
+
             Document updated = documentService.updateDocument(id, document);
             return ResponseEntity.ok(new DocumentResponseDTO(updated));
         } catch (Exception e) {
@@ -98,8 +105,8 @@ public class DocumentController {
     public ResponseEntity<String> downloadDocument(@PathVariable Long id) {
         Document document = documentService.getDocumentById(id);
         return ResponseEntity.ok()
-            .header("Content-Disposition", "attachment; filename=\"" + document.getFileName() + "\"")
-            .body("File content for: " + document.getFileName());
+                .header("Content-Disposition", "attachment; filename=\"" + document.getFileName() + "\"")
+                .body("File content for: " + document.getFileName());
     }
 
     @PostMapping("/upload")
@@ -114,7 +121,7 @@ public class DocumentController {
             document.setSize(file.getSize());
             document.setOwnerId(1L);
             document.setVisibility(Document.Visibility.PRIVATE);
-            
+
             Document saved = documentService.createDocument(document);
             return ResponseEntity.ok(new DocumentResponseDTO(saved));
         } catch (Exception e) {

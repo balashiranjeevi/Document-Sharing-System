@@ -1,14 +1,18 @@
 package com.examly.springapp;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class DocumentManagementSystemApplication {
 
+	private static final Logger logger = LoggerFactory.getLogger(DocumentManagementSystemApplication.class);
+
 	public static void main(String[] args) {
 		SpringApplication.run(DocumentManagementSystemApplication.class, args);
-		System.out.println("Application is working");
+		logger.info("Document Management System Application started successfully");
 	}
 
 }

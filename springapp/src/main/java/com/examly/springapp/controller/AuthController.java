@@ -2,10 +2,13 @@ package com.examly.springapp.controller;
 
 import com.examly.springapp.dto.LoginRequestDTO;
 import com.examly.springapp.dto.LoginResponseDTO;
+import com.examly.springapp.dto.UserRegisterRequestDTO;
 import com.examly.springapp.model.User;
 import com.examly.springapp.repository.UserRepository;
 import com.examly.springapp.util.JwtUtil;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -25,11 +28,52 @@ public class AuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@Valid @RequestBody UserRegisterRequestDTO registerRequest) {
+        try {
+            System.out.println("Registration attempt for email: " + registerRequest.getEmail());
+            
+            if (userRepository.existsByEmail(registerRequest.getEmail())) {
+                System.out.println("Email already exists: " + registerRequest.getEmail());
+                return ResponseEntity.badRequest().body(Map.of("message", "Email already exists"));
+            }
+
+            User user = new User();
+            user.setName(registerRequest.getName());
+            user.setEmail(registerRequest.getEmail());
+            user.setPasswordHash(passwordEncoder.encode(registerRequest.getPassword()));
+            user.setRole(User.Role.USER);
+
+            System.out.println("Saving user to database...");
+            User savedUser = userRepository.save(user);
+            System.out.println("User saved with ID: " + savedUser.getId());
+            
+            String token = jwtUtil.generateToken(savedUser.getEmail());
+            System.out.println("JWT token generated successfully");
+
+            return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new LoginResponseDTO(token, savedUser));
+        } catch (Exception e) {
+            System.err.println("Registration error: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("message", "Registration failed: " + e.getMessage()));
+        }
+    }
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequest) {
-        User user = userRepository.findByEmail(loginRequest.getEmail());
+        if (loginRequest.getEmail() == null || loginRequest.getPassword() == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Email and password are required"));
+        }
         
-        if (user == null || !passwordEncoder.matches(loginRequest.getPassword(), user.getPasswordHash())) {
+        java.util.Optional<User> userOpt = userRepository.findByEmail(loginRequest.getEmail());
+        
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Invalid credentials"));
+        }
+        
+        User user = userOpt.get();
+        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPasswordHash())) {
             return ResponseEntity.badRequest().body(Map.of("message", "Invalid credentials"));
         }
 

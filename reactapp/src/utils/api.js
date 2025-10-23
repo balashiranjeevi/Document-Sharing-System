@@ -16,7 +16,7 @@ api.interceptors.request.use((config) => {
 
 export const authService = {
   login: (credentials) => api.post('/auth/login', credentials),
-  register: (userData) => api.post('/users/register', userData),
+  register: (userData) => api.post('/auth/register', userData),
   logout: () => localStorage.removeItem('token'),
 };
 
@@ -39,11 +39,11 @@ export const folderService = {
 
 // API methods for testing compatibility
 const apiMethods = {
-  getAllDocuments: (params = {}) => axios.get('/documents', { params }).then(res => res.data),
-  getDocumentById: (id) => axios.get(`/documents/${id}`).then(res => res.data),
-  createDocument: (data) => axios.post('/documents', data).then(res => res.data),
-  updateDocument: (id, data) => axios.put(`/documents/${id}`, data).then(res => res.data),
-  deleteDocument: (id) => axios.delete(`/documents/${id}`).then(res => res.data)
+  getAllDocuments: (params = {}) => api.get('/documents', { params }).then(res => res.data),
+  getDocumentById: (id) => api.get(`/documents/${id}`).then(res => res.data),
+  createDocument: (data) => api.post('/documents', data).then(res => res.data),
+  updateDocument: (id, data) => api.put(`/documents/${id}`, data).then(res => res.data),
+  deleteDocument: (id) => api.delete(`/documents/${id}`).then(res => res.data)
 };
 
 Object.assign(api, apiMethods);
