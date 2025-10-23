@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for src/services/folderService.js</title>
+    <title>Code coverage report for src/components/ErrorBoundary.js</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../index.html">All files</a> / <a href="index.html">src/services</a> folderService.js</h1>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">src/components</a> ErrorBoundary.js</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/15</span>
+                <span class='fraction'>0/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/0</span>
+                <span class='fraction'>0/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>0/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/15</span>
+                <span class='fraction'>0/8</span>
             </div>
         
             
@@ -101,13 +101,7 @@
 <a name='L36'></a><a href='#L36'>36</a>
 <a name='L37'></a><a href='#L37'>37</a>
 <a name='L38'></a><a href='#L38'>38</a>
-<a name='L39'></a><a href='#L39'>39</a>
-<a name='L40'></a><a href='#L40'>40</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<a name='L39'></a><a href='#L39'>39</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -117,11 +111,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -131,56 +123,61 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import api from '../utils/api';
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import React from 'react';
 &nbsp;
-export const folderService = <span class="cstat-no" title="statement not covered" >{</span>
-  getAll: <span class="fstat-no" title="function not covered" >as</span>ync () =&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await api.get('/folders');</span>
-<span class="cstat-no" title="statement not covered" >    return response.data;</span>
-  },
-&nbsp;
-  getById: <span class="fstat-no" title="function not covered" >as</span>ync (id) =&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await api.get(`/folders/${id}`);</span>
-<span class="cstat-no" title="statement not covered" >    return response.data;</span>
-  },
-&nbsp;
-  create: <span class="fstat-no" title="function not covered" >as</span>ync (folderData) =&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await api.post('/folders', folderData);</span>
-<span class="cstat-no" title="statement not covered" >    return response.data;</span>
-  },
-&nbsp;
-  update: <span class="fstat-no" title="function not covered" >as</span>ync (id, folderData) =&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await api.put(`/folders/${id}`, folderData);</span>
-<span class="cstat-no" title="statement not covered" >    return response.data;</span>
-  },
-&nbsp;
-  delete: <span class="fstat-no" title="function not covered" >as</span>ync (id) =&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await api.delete(`/folders/${id}`);</span>
-<span class="cstat-no" title="statement not covered" >    return response.data;</span>
-  },
-&nbsp;
-  getContents: <span class="fstat-no" title="function not covered" >as</span>ync (id) =&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await api.get(`/folders/${id}/contents`);</span>
-<span class="cstat-no" title="statement not covered" >    return response.data;</span>
-  },
-&nbsp;
-  move: <span class="fstat-no" title="function not covered" >as</span>ync (id, parentId) =&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await api.patch(`/folders/${id}/move`, { parentId });</span>
-<span class="cstat-no" title="statement not covered" >    return response.data;</span>
+class ErrorBoundary extends React.Component {
+<span class="fstat-no" title="function not covered" >  co</span>nstructor(props) {
+<span class="cstat-no" title="statement not covered" >    super(props);</span>
+<span class="cstat-no" title="statement not covered" >    this.state = { hasError: false, error: null };</span>
   }
-};
 &nbsp;
-export default folderService;</pre></td></tr></table></pre>
+<span class="fstat-no" title="function not covered" >  st</span>atic getDerivedStateFromError(error) {
+<span class="cstat-no" title="statement not covered" >    return { hasError: true, error };</span>
+  }
+&nbsp;
+<span class="fstat-no" title="function not covered" >  co</span>mponentDidCatch(error, errorInfo) {
+<span class="cstat-no" title="statement not covered" >    console.error('Error caught by boundary:', error, errorInfo);</span>
+  }
+&nbsp;
+<span class="fstat-no" title="function not covered" >  re</span>nder() {
+<span class="cstat-no" title="statement not covered" >    if (this.state.hasError) {</span>
+<span class="cstat-no" title="statement not covered" >      return (</span>
+        &lt;div className="min-h-screen flex items-center justify-center bg-gray-50"&gt;
+          &lt;div className="text-center"&gt;
+            &lt;h1 className="text-2xl font-bold text-gray-900 mb-4"&gt;Something went wrong&lt;/h1&gt;
+            &lt;p className="text-gray-600 mb-4"&gt;We're sorry, but something unexpected happened.&lt;/p&gt;
+            &lt;button
+              onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >window.location.reload()}</span>
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            &gt;
+              Reload Page
+            &lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      );
+    }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    return this.props.children;</span>
+  }
+}
+&nbsp;
+export default ErrorBoundary;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->

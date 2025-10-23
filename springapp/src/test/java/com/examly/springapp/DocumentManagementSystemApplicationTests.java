@@ -58,7 +58,7 @@ class DocumentManagementSystemApplicationTests {
     @Test
     void day1_testGetAllDocuments() throws Exception {
         Page<Document> mockPage = new org.springframework.data.domain.PageImpl<>(List.of(sampleDoc));
-        Mockito.when(documentService.getAllDocuments(Mockito.any(org.springframework.data.domain.Pageable.class)))
+        Mockito.when(documentService.getAllDocuments(Mockito.anyInt(), Mockito.anyInt(), Mockito.anyString(), Mockito.anyString(), Mockito.any()))
                 .thenReturn(mockPage);
 
         mockMvc.perform(get("/api/documents"))

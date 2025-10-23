@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for src/services/folderService.js</title>
+    <title>Code coverage report for src/utils/validation.js</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../index.html">All files</a> / <a href="index.html">src/services</a> folderService.js</h1>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">src/utils</a> validation.js</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">46.66% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/15</span>
+                <span class='fraction'>7/15</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">20% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/0</span>
+                <span class='fraction'>1/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">20% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>1/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/15</span>
+                <span class='fraction'>7/14</span>
             </div>
         
             
@@ -93,94 +93,67 @@
 <a name='L28'></a><a href='#L28'>28</a>
 <a name='L29'></a><a href='#L29'>29</a>
 <a name='L30'></a><a href='#L30'>30</a>
-<a name='L31'></a><a href='#L31'>31</a>
-<a name='L32'></a><a href='#L32'>32</a>
-<a name='L33'></a><a href='#L33'>33</a>
-<a name='L34'></a><a href='#L34'>34</a>
-<a name='L35'></a><a href='#L35'>35</a>
-<a name='L36'></a><a href='#L36'>36</a>
-<a name='L37'></a><a href='#L37'>37</a>
-<a name='L38'></a><a href='#L38'>38</a>
-<a name='L39'></a><a href='#L39'>39</a>
-<a name='L40'></a><a href='#L40'>40</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L31'></a><a href='#L31'>31</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import api from '../utils/api';
-&nbsp;
-export const folderService = <span class="cstat-no" title="statement not covered" >{</span>
-  getAll: <span class="fstat-no" title="function not covered" >as</span>ync () =&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await api.get('/folders');</span>
-<span class="cstat-no" title="statement not covered" >    return response.data;</span>
-  },
-&nbsp;
-  getById: <span class="fstat-no" title="function not covered" >as</span>ync (id) =&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await api.get(`/folders/${id}`);</span>
-<span class="cstat-no" title="statement not covered" >    return response.data;</span>
-  },
-&nbsp;
-  create: <span class="fstat-no" title="function not covered" >as</span>ync (folderData) =&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await api.post('/folders', folderData);</span>
-<span class="cstat-no" title="statement not covered" >    return response.data;</span>
-  },
-&nbsp;
-  update: <span class="fstat-no" title="function not covered" >as</span>ync (id, folderData) =&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await api.put(`/folders/${id}`, folderData);</span>
-<span class="cstat-no" title="statement not covered" >    return response.data;</span>
-  },
-&nbsp;
-  delete: <span class="fstat-no" title="function not covered" >as</span>ync (id) =&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await api.delete(`/folders/${id}`);</span>
-<span class="cstat-no" title="statement not covered" >    return response.data;</span>
-  },
-&nbsp;
-  getContents: <span class="fstat-no" title="function not covered" >as</span>ync (id) =&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await api.get(`/folders/${id}/contents`);</span>
-<span class="cstat-no" title="statement not covered" >    return response.data;</span>
-  },
-&nbsp;
-  move: <span class="fstat-no" title="function not covered" >as</span>ync (id, parentId) =&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await api.patch(`/folders/${id}/move`, { parentId });</span>
-<span class="cstat-no" title="statement not covered" >    return response.data;</span>
-  }
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">export const validateEmail = <span class="fstat-no" title="function not covered" >(e</span>mail) =&gt; {
+  const emailRegex = <span class="cstat-no" title="statement not covered" >/^[^\s@]+@[^\s@]+\.[^\s@]+$/;</span>
+<span class="cstat-no" title="statement not covered" >  return emailRegex.test(email);</span>
 };
 &nbsp;
-export default folderService;</pre></td></tr></table></pre>
+export const validatePassword = <span class="fstat-no" title="function not covered" >(p</span>assword) =&gt; {
+<span class="cstat-no" title="statement not covered" >  return password &amp;&amp; password.length &gt;= 6;</span>
+};
+&nbsp;
+export const sanitizeInput = (input) =&gt; {
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (typeof input !== 'string') <span class="cstat-no" title="statement not covered" >return input;</span>
+  return input.trim().replace(/[&lt;&gt;]/g, '');
+};
+&nbsp;
+export const validateFileType = <span class="fstat-no" title="function not covered" >(f</span>ile) =&gt; {
+  const allowedTypes = <span class="cstat-no" title="statement not covered" >[</span>
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'text/plain',
+    'image/jpeg',
+    'image/png',
+    'image/gif'
+  ];
+<span class="cstat-no" title="statement not covered" >  return allowedTypes.includes(file.type);</span>
+};
+&nbsp;
+export const validateFileSize = <span class="fstat-no" title="function not covered" >(f</span>ile, maxSizeMB = <span class="branch-0 cbranch-no" title="branch not covered" >50)</span> =&gt; {
+  const maxSizeBytes = <span class="cstat-no" title="statement not covered" >maxSizeMB * 1024 * 1024;</span>
+<span class="cstat-no" title="statement not covered" >  return file.size &lt;= maxSizeBytes;</span>
+};</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->

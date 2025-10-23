@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">52.94% </span>
+                <span class="strong">51.42% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>18/34</span>
+                <span class='fraction'>18/35</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">40% </span>
+                <span class="strong">30% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>2/5</span>
+                <span class='fraction'>3/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">43.47% </span>
+                <span class="strong">41.66% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>10/23</span>
+                <span class='fraction'>10/24</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">44.82% </span>
+                <span class="strong">43.33% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>13/29</span>
+                <span class='fraction'>13/30</span>
             </div>
         
             
@@ -111,7 +111,9 @@
 <a name='L46'></a><a href='#L46'>46</a>
 <a name='L47'></a><a href='#L47'>47</a>
 <a name='L48'></a><a href='#L48'>48</a>
-<a name='L49'></a><a href='#L49'>49</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -138,6 +140,8 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -177,7 +181,7 @@ api.interceptors.request.use(<span class="fstat-no" title="function not covered"
 &nbsp;
 export const authService = {
   login: <span class="fstat-no" title="function not covered" >(c</span>redentials) =&gt; <span class="cstat-no" title="statement not covered" >api.post('/auth/login', credentials),</span>
-  register: <span class="fstat-no" title="function not covered" >(u</span>serData) =&gt; <span class="cstat-no" title="statement not covered" >api.post('/users/register', userData),</span>
+  register: <span class="fstat-no" title="function not covered" >(u</span>serData) =&gt; <span class="cstat-no" title="statement not covered" >api.post('/auth/register', userData),</span>
   logout: <span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >localStorage.removeItem('token'),</span>
 };
 &nbsp;
@@ -187,6 +191,8 @@ export const documentService = {
   create: <span class="fstat-no" title="function not covered" >(d</span>ata) =&gt; <span class="cstat-no" title="statement not covered" >api.post('/documents', data),</span>
   update: <span class="fstat-no" title="function not covered" >(i</span>d, data) =&gt; <span class="cstat-no" title="statement not covered" >api.put(`/documents/${id}`, data),</span>
   delete: <span class="fstat-no" title="function not covered" >(i</span>d) =&gt; <span class="cstat-no" title="statement not covered" >api.delete(`/documents/${id}`),</span>
+  search: <span class="fstat-no" title="function not covered" >(q</span>uery, page = <span class="branch-0 cbranch-no" title="branch not covered" >0,</span> size = <span class="branch-0 cbranch-no" title="branch not covered" >10,</span> sortBy = <span class="branch-0 cbranch-no" title="branch not covered" >'id',</span> sortDir = <span class="branch-0 cbranch-no" title="branch not covered" >'asc')</span> =&gt; 
+<span class="cstat-no" title="statement not covered" >    api.get('/documents', { params: { search: query, page, size, sortBy, sortDir } })</span>
 };
 &nbsp;
 export const folderService = {
@@ -198,11 +204,11 @@ export const folderService = {
 &nbsp;
 // API methods for testing compatibility
 const apiMethods = {
-  getAllDocuments: () =&gt; axios.get('/documents').then(res =&gt; res.data),
-  getDocumentById: (id) =&gt; axios.get(`/documents/${id}`).then(res =&gt; res.data),
-  createDocument: (data) =&gt; axios.post('/documents', data).then(res =&gt; res.data),
-  updateDocument: (id, data) =&gt; axios.put(`/documents/${id}`, data).then(res =&gt; res.data),
-  deleteDocument: (id) =&gt; axios.delete(`/documents/${id}`).then(res =&gt; res.data)
+  getAllDocuments: (params = {}) =&gt; api.get('/documents', { params }).then(res =&gt; res.data),
+  getDocumentById: (id) =&gt; api.get(`/documents/${id}`).then(res =&gt; res.data),
+  createDocument: (data) =&gt; api.post('/documents', data).then(res =&gt; res.data),
+  updateDocument: (id, data) =&gt; api.put(`/documents/${id}`, data).then(res =&gt; res.data),
+  deleteDocument: (id) =&gt; api.delete(`/documents/${id}`).then(res =&gt; res.data)
 };
 &nbsp;
 Object.assign(api, apiMethods);
@@ -214,7 +220,7 @@ export default api;</pre></td></tr></table></pre>
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-16T09:51:18.829Z
+                at 2025-10-23T04:11:15.256Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
