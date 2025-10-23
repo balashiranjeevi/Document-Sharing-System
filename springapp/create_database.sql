@@ -10,8 +10,15 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    role ENUM('ADMIN', 'USER') NOT NULL DEFAULT 'USER'
+    role ENUM('ADMIN', 'USER') NOT NULL DEFAULT 'USER',
+    status VARCHAR(50) DEFAULT 'ACTIVE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Insert admin user
+INSERT INTO users (name, email, password_hash, role) VALUES
+('Admin User', 'admin@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ADMIN');
+-- Password is 'admin123' (bcrypt hashed)
 
 -- Create documents table
 CREATE TABLE IF NOT EXISTS documents (

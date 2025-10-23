@@ -27,11 +27,9 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
   const [isHovered, setIsHovered] = useState(false);
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
-  const from = location.state?.from?.pathname || "/dashboard";
 
   useEffect(() => {
     // Check for saved credentials
@@ -41,6 +39,13 @@ const Login = () => {
       setRememberMe(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      const redirectPath = user.role === "ADMIN" ? "/admin" : "/dashboard";
+      navigate(redirectPath, { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -66,7 +71,7 @@ const Login = () => {
       }
 
       await login(formData);
-      navigate(from, { replace: true });
+      // Navigation is now handled by useEffect when user state changes
     } catch (error) {
       setError(
         error.response?.data?.message ||

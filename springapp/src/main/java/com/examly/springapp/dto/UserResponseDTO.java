@@ -6,7 +6,7 @@ public class UserResponseDTO {
     private Long id;
     private String name;
     private String email;
-    private User.Role role;
+    private String role;
     private String status = "ACTIVE";
     private String username;
 
@@ -16,7 +16,7 @@ public class UserResponseDTO {
         this.id = user.getId();
         this.name = user.getName();
         this.email = user.getEmail();
-        this.role = user.getRole();
+        this.role = user.getRole().name();
         this.username = user.getName();
         this.status = "ACTIVE";
     }
@@ -45,11 +45,11 @@ public class UserResponseDTO {
         this.email = email;
     }
 
-    public User.Role getRole() {
+    public String getRole() {
         return role;
     }
 
-    public void setRole(User.Role role) {
+    public void setRole(String role) {
         this.role = role;
     }
 

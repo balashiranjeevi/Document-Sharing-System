@@ -1,12 +1,12 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import axios from "axios";
 
 const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
@@ -16,23 +16,23 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
-    
+    const token = localStorage.getItem("token");
+    const savedUser = localStorage.getItem("user");
+
     if (token && savedUser) {
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
+        const payload = JSON.parse(atob(token.split(".")[1]));
         const currentTime = Date.now() / 1000;
-        
+
         if (payload.exp > currentTime) {
           setUser(JSON.parse(savedUser));
         } else {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
         }
       } catch (error) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
       }
     }
     setLoading(false);
@@ -40,38 +40,40 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      const API_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+      const API_URL =
+        process.env.REACT_APP_API_BASE_URL || "http://localhost:8080/api";
       const response = await axios.post(`${API_URL}/auth/login`, credentials);
       const { token, user } = response.data;
-      
+
       if (!token || !user) {
-        throw new Error('Invalid response from server');
+        throw new Error("Invalid response from server");
       }
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
       setUser(user);
       return response.data;
     } catch (error) {
-      console.error('Login error:', error);
-      throw new Error(error.response?.data?.message || 'Login failed');
+      console.error("Login error:", error);
+      throw new Error(error.response?.data?.message || "Login failed");
     }
   };
 
   const register = async (userData) => {
     try {
-      const API_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+      const API_URL =
+        process.env.REACT_APP_API_BASE_URL || "http://localhost:8080/api";
       const response = await axios.post(`${API_URL}/auth/register`, userData);
       return response.data;
     } catch (error) {
-      console.error('Registration error:', error);
-      throw new Error(error.response?.data?.message || 'Registration failed');
+      console.error("Registration error:", error);
+      throw new Error(error.response?.data?.message || "Registration failed");
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setUser(null);
   };
 
@@ -81,7 +83,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     loading,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
   };
 
   return (

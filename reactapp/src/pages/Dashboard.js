@@ -73,31 +73,41 @@ const Dashboard = () => {
     try {
       const response = await documentService.getStats();
       const data = response.data || {};
+      const maxStorage = data.maxStorage || 200 * 1024 * 1024; // 200MB in bytes
+      const storageUsed = data.storageUsed || 0;
+      const totalFiles = data.total || 0;
+      const sharedFiles = data.shared || 0;
       setStats({
-        totalFiles: data.total || 0,
-        storageUsed: formatStorage(data.storageUsed || 0),
-        sharedFiles: data.shared || 0,
+        totalFiles: totalFiles,
+        storageUsed: formatStorage(storageUsed),
+        storageUsedBytes: storageUsed,
+        sharedFiles: sharedFiles,
         recentUploads: data.recent || 0,
+        storagePercentage: data.storagePercentage || 0,
+        freeStorage: formatStorage(maxStorage - storageUsed),
+        sharedPercentage:
+          totalFiles > 0 ? Math.round((sharedFiles / totalFiles) * 100) : 0,
       });
     } catch (error) {
-      logError(error, 'fetching stats');
+      logError(error, "fetching stats");
       setStats({
         totalFiles: 0,
         storageUsed: "0 GB",
         sharedFiles: 0,
         recentUploads: 0,
+        storagePercentage: 0,
+        freeStorage: "200 MB",
+        sharedPercentage: 0,
       });
     }
   };
 
   const formatStorage = (bytes) => {
-    if (bytes === 0) return "0 GB";
-    const gb = bytes / (1024 * 1024 * 1024);
-    if (gb < 1) {
-      const mb = bytes / (1024 * 1024);
-      return `${mb.toFixed(1)} MB`;
-    }
-    return `${gb.toFixed(2)} GB`;
+    if (!bytes) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   const handlePageChange = (newPage) => {
@@ -180,7 +190,7 @@ const Dashboard = () => {
           setError(null);
       }
     } catch (error) {
-      logError(error, 'fetching documents');
+      logError(error, "fetching documents");
       const errorMessage = handleApiError(error);
       setError(errorMessage);
       setDocuments([]);
@@ -258,7 +268,7 @@ const Dashboard = () => {
       value: (stats.totalFiles || 0).toLocaleString(),
       icon: FiHardDrive,
       color: "blue",
-      trend: "+12%",
+      trend: `${stats.totalFiles || 0} files`,
       description: "All your documents",
     },
     {
@@ -266,7 +276,7 @@ const Dashboard = () => {
       value: stats.storageUsed,
       icon: FiBarChart,
       color: "green",
-      trend: "5.2 GB free",
+      trend: `${stats.freeStorage} free`,
       description: "Of 200 MB total",
     },
     {
@@ -274,7 +284,7 @@ const Dashboard = () => {
       value: (stats.sharedFiles || 0).toLocaleString(),
       icon: FiUsers,
       color: "purple",
-      trend: "+8%",
+      trend: `${stats.sharedPercentage || 0}% shared`,
       description: "Collaborating with team",
     },
     {
@@ -424,10 +434,16 @@ const Dashboard = () => {
                             stat.color
                           )} h-2 rounded-full transition-all duration-1000`}
                           style={{
-                            width: `${Math.min(
-                              100,
-                              ((stats.totalFiles || 0) / 1000) * 100
-                            )}%`,
+                            width: `${
+                              stat.title === "Storage Used"
+                                ? stats.storagePercentage || 0
+                                : stat.title === "Shared Files"
+                                ? stats.sharedPercentage || 0
+                                : Math.min(
+                                    100,
+                                    ((stats.totalFiles || 0) / 1000) * 100
+                                  )
+                            }%`,
                           }}
                         ></div>
                       </div>

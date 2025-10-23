@@ -208,7 +208,7 @@ public class DocumentService {
             stats.put("shared", getSharedDocumentsCount());
             stats.put("trash", getTrashedDocumentsCount());
             stats.put("storageUsed", documentRepository.getTotalStorage());
-            stats.put("maxStorage", 200L * 1024 * 1024 * 1024); // 200GB in bytes
+            stats.put("maxStorage", 200L * 1024 * 1024); // 200MB in bytes
             long storageUsed = (Long) stats.get("storageUsed");
             long maxStorage = (Long) stats.get("maxStorage");
             stats.put("storagePercentage", maxStorage > 0 ? (double) storageUsed / maxStorage : 0.0);

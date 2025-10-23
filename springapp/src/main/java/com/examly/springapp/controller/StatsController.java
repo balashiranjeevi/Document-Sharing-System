@@ -1,7 +1,6 @@
 package com.examly.springapp.controller;
 
-import com.examly.springapp.repository.DocumentRepository;
-import com.examly.springapp.repository.UserRepository;
+import com.examly.springapp.service.DocumentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,21 +14,11 @@ import java.util.Map;
 public class StatsController {
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private DocumentRepository documentRepository;
+    private DocumentService documentService;
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> getStats() {
-        long totalUsers = userRepository.count();
-        long totalDocuments = documentRepository.count();
-        
-        return ResponseEntity.ok(Map.of(
-            "totalUsers", totalUsers,
-            "totalDocuments", totalDocuments,
-            "totalStorage", "12.4 GB",
-            "activeUsers", totalUsers
-        ));
+        Map<String, Object> stats = documentService.getDocumentStats();
+        return ResponseEntity.ok(stats);
     }
 }
