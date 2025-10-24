@@ -2,8 +2,10 @@ package com.examly.springapp.controller;
 
 import com.examly.springapp.model.User;
 import com.examly.springapp.model.Document;
+import com.examly.springapp.model.DocumentActivity;
 import com.examly.springapp.service.UserService;
 import com.examly.springapp.service.DocumentService;
+import com.examly.springapp.service.ActivityLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,6 +26,9 @@ public class AdminController {
 
     @Autowired
     private DocumentService documentService;
+
+    @Autowired
+    private ActivityLogService activityLogService;
 
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getAdminStats() {
@@ -92,6 +97,43 @@ public class AdminController {
             System.err.println("Error getting all documents for admin: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.ok(new java.util.ArrayList<>());
+        }
+    }
+
+    @GetMapping("/activities")
+    public ResponseEntity<List<Map<String, Object>>> getRecentActivities() {
+        try {
+            List<DocumentActivity> activities = activityLogService.getRecentActivities();
+            List<Map<String, Object>> activityList = activities.stream()
+                    .map(activity -> {
+                        Map<String, Object> activityMap = new HashMap<>();
+                        activityMap.put("id", activity.getId());
+                        activityMap.put("type", mapActionToType(activity.getAction()));
+                        activityMap.put("description", activity.getDetails());
+                        activityMap.put("timestamp", activity.getTimestamp() != null ? activity.getTimestamp().toString() : null);
+                        return activityMap;
+                    })
+                    .collect(java.util.stream.Collectors.toList());
+            return ResponseEntity.ok(activityList);
+        } catch (Exception e) {
+            System.err.println("Error getting recent activities: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.ok(new java.util.ArrayList<>());
+        }
+    }
+
+    private String mapActionToType(String action) {
+        switch (action) {
+            case "UPLOADED": return "upload";
+            case "VIEWED": return "view";
+            case "DOWNLOADED": return "download";
+            case "SHARED": return "share";
+            case "RENAMED": return "edit";
+            case "DELETED": return "delete";
+            case "RESTORED": return "restore";
+            case "SHARED_VIEW": return "share";
+            case "AUTO_DELETED": return "delete";
+            default: return "edit";
         }
     }
 }

@@ -9,6 +9,18 @@ import {
   FiDownload,
   FiTrash2,
   FiEdit,
+  FiRefreshCw,
+  FiTrendingUp,
+  FiShield,
+  FiDatabase,
+  FiClock,
+  FiEye,
+  FiUserCheck,
+  FiUserX,
+  FiMail,
+  FiBell,
+  FiHardDrive,
+  FiZap,
 } from "react-icons/fi";
 import Header from "../components/Header";
 import LoadingSpinner from "../components/LoadingSpinner";
@@ -20,6 +32,7 @@ const Admin = () => {
   const [activeTab, setActiveTab] = useState("users");
   const [users, setUsers] = useState([]);
   const [documents, setDocuments] = useState([]);
+  const [activities, setActivities] = useState([]);
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalDocuments: 0,
@@ -36,10 +49,25 @@ const Admin = () => {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await Promise.all([fetchStats(), fetchUsers(), fetchDocuments()]);
+      await Promise.all([
+        fetchStats(),
+        fetchUsers(),
+        fetchDocuments(),
+        fetchActivities(),
+      ]);
       setLoading(false);
     };
     loadData();
+
+    // Set up real-time updates every 30 seconds
+    const interval = setInterval(() => {
+      fetchStats();
+      fetchUsers();
+      fetchDocuments();
+      fetchActivities();
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const fetchStats = async () => {
@@ -79,6 +107,16 @@ const Admin = () => {
     }
   };
 
+  const fetchActivities = async () => {
+    try {
+      const response = await axios.get("admin/activities");
+      setActivities(response.data);
+    } catch (error) {
+      console.error("Error fetching activities:", error);
+      setActivities([]);
+    }
+  };
+
   const handleDeleteUser = async (userId) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
 
@@ -91,9 +129,12 @@ const Admin = () => {
   };
 
   const tabs = [
+    { id: "overview", label: "Overview", icon: FiBarChart },
     { id: "users", label: "Users", icon: FiUsers },
     { id: "documents", label: "Documents", icon: FiFile },
+    { id: "analytics", label: "Analytics", icon: FiTrendingUp },
     { id: "activity", label: "Activity", icon: FiActivity },
+    { id: "system", label: "System", icon: FiShield },
     { id: "settings", label: "Settings", icon: FiSettings },
   ];
 
@@ -400,6 +441,165 @@ const Admin = () => {
             </div>
           ) : (
             <>
+              {activeTab === "overview" && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">
+                        User Registration Trends
+                      </h3>
+                      <AdminChart
+                        data={[
+                          { name: "Jan", value: 65 },
+                          { name: "Feb", value: 59 },
+                          { name: "Mar", value: 80 },
+                          { name: "Apr", value: 81 },
+                          { name: "May", value: 56 },
+                          { name: "Jun", value: 55 },
+                        ]}
+                        type="line"
+                        height={250}
+                      />
+                    </div>
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">
+                        Document Types Distribution
+                      </h3>
+                      <AdminChart
+                        data={[
+                          { name: "PDF", value: 400 },
+                          { name: "DOC", value: 300 },
+                          { name: "TXT", value: 200 },
+                          { name: "IMG", value: 100 },
+                        ]}
+                        type="pie"
+                        height={250}
+                      />
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">
+                      System Performance Overview
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="text-center">
+                        <FiZap
+                          className="mx-auto text-green-500 mb-2"
+                          size={32}
+                        />
+                        <p className="text-sm text-gray-600">System Health</p>
+                        <p className="text-2xl font-bold text-green-600">98%</p>
+                      </div>
+                      <div className="text-center">
+                        <FiHardDrive
+                          className="mx-auto text-blue-500 mb-2"
+                          size={32}
+                        />
+                        <p className="text-sm text-gray-600">Storage Usage</p>
+                        <p className="text-2xl font-bold text-blue-600">45%</p>
+                      </div>
+                      <div className="text-center">
+                        <FiClock
+                          className="mx-auto text-orange-500 mb-2"
+                          size={32}
+                        />
+                        <p className="text-sm text-gray-600">
+                          Avg Response Time
+                        </p>
+                        <p className="text-2xl font-bold text-orange-600">
+                          120ms
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {activeTab === "analytics" && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">
+                        User Growth Analytics
+                      </h3>
+                      <AdminChart
+                        data={[
+                          { name: "Week 1", value: 120 },
+                          { name: "Week 2", value: 150 },
+                          { name: "Week 3", value: 180 },
+                          { name: "Week 4", value: 220 },
+                        ]}
+                        type="bar"
+                        height={250}
+                      />
+                    </div>
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">
+                        Document Upload Trends
+                      </h3>
+                      <AdminChart
+                        data={[
+                          { name: "Mon", value: 45 },
+                          { name: "Tue", value: 52 },
+                          { name: "Wed", value: 38 },
+                          { name: "Thu", value: 61 },
+                          { name: "Fri", value: 55 },
+                          { name: "Sat", value: 28 },
+                          { name: "Sun", value: 32 },
+                        ]}
+                        type="line"
+                        height={250}
+                      />
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">
+                      Performance Metrics
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                      <div className="text-center">
+                        <FiTrendingUp
+                          className="mx-auto text-green-500 mb-2"
+                          size={32}
+                        />
+                        <p className="text-sm text-gray-600">Growth Rate</p>
+                        <p className="text-2xl font-bold text-green-600">
+                          +15%
+                        </p>
+                      </div>
+                      <div className="text-center">
+                        <FiUserCheck
+                          className="mx-auto text-blue-500 mb-2"
+                          size={32}
+                        />
+                        <p className="text-sm text-gray-600">User Retention</p>
+                        <p className="text-2xl font-bold text-blue-600">87%</p>
+                      </div>
+                      <div className="text-center">
+                        <FiFile
+                          className="mx-auto text-purple-500 mb-2"
+                          size={32}
+                        />
+                        <p className="text-sm text-gray-600">
+                          Avg Documents/User
+                        </p>
+                        <p className="text-2xl font-bold text-purple-600">
+                          12.5
+                        </p>
+                      </div>
+                      <div className="text-center">
+                        <FiEye
+                          className="mx-auto text-orange-500 mb-2"
+                          size={32}
+                        />
+                        <p className="text-sm text-gray-600">Page Views</p>
+                        <p className="text-2xl font-bold text-orange-600">
+                          2.4K
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
               {activeTab === "users" && <UserTable />}
               {activeTab === "documents" && (
                 <div className="space-y-6">
@@ -539,7 +739,7 @@ const Admin = () => {
                     <h3 className="text-lg font-medium text-gray-900 mb-4">
                       Recent Activity Logs
                     </h3>
-                    <ActivityLog />
+                    <ActivityLog activities={activities} />
                   </div>
                 </div>
               )}

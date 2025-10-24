@@ -1,37 +1,50 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { 
-  FiCloud, FiFolder, FiShare2, FiShield, FiUsers, FiZap, 
-  FiCheck, FiArrowRight, FiPlay, FiStar, FiMenu, FiX,
-  FiDownload, FiLock, FiGlobe, FiTrendingUp
-} from 'react-icons/fi';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import {
+  FiCloud,
+  FiFolder,
+  FiShare2,
+  FiShield,
+  FiUsers,
+  FiZap,
+  FiCheck,
+  FiArrowRight,
+  FiPlay,
+  FiStar,
+  FiMenu,
+  FiX,
+  FiDownload,
+  FiLock,
+  FiGlobe,
+  FiTrendingUp,
+} from "react-icons/fi";
 
 const Landing = () => {
   const [activeFeature, setActiveFeature] = useState(0);
   const [isVisible, setIsVisible] = useState({});
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [stats, setStats] = useState([
-    { number: '10M+', label: 'Files Secured' },
-    { number: '50K+', label: 'Active Users' },
-    { number: '99.9%', label: 'Uptime' },
-    { number: '150+', label: 'Countries' }
+    { number: "10M+", label: "Files Secured" },
+    { number: "50K+", label: "Active Users" },
+    { number: "99.9%", label: "Uptime" },
+    { number: "150+", label: "Countries" },
   ]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          setIsVisible(prev => ({
+          setIsVisible((prev) => ({
             ...prev,
-            [entry.target.id]: entry.isIntersecting
+            [entry.target.id]: entry.isIntersecting,
           }));
         });
       },
       { threshold: 0.1 }
     );
 
-    document.querySelectorAll('[id]').forEach((el) => {
+    document.querySelectorAll("[id]").forEach((el) => {
       observer.observe(el);
     });
 
@@ -39,63 +52,62 @@ const Landing = () => {
   }, []);
 
   const features = [
-    { 
-      icon: FiFolder, 
-      title: 'Intelligent Organization', 
-      desc: 'Auto-sort and tag your files with smart folders and AI-powered search for instant retrieval.',
-      color: 'blue'
+    {
+      icon: FiFolder,
+      title: "Intelligent Organization",
+      desc: "Auto-sort and tag your files with smart folders and AI-powered search for instant retrieval.",
+      color: "blue",
     },
-    { 
-      icon: FiShare2, 
-      title: 'Secure Global Sharing', 
-      desc: 'Share files with time-limits, password protection, and granular permission controls.',
-      color: 'green'
+    {
+      icon: FiShare2,
+      title: "Secure Global Sharing",
+      desc: "Share files with time-limits, password protection, and granular permission controls.",
+      color: "green",
     },
-    { 
-      icon: FiCloud, 
-      title: 'Seamless Cross-Device Sync', 
-      desc: 'Access, edit, and sync your documents in real-time across desktop, mobile, and web.',
-      color: 'purple'
-    }
+    {
+      icon: FiCloud,
+      title: "Seamless Cross-Device Sync",
+      desc: "Access, edit, and sync your documents in real-time across desktop, mobile, and web.",
+      color: "purple",
+    },
   ];
 
   const reviews = [
-    { 
-      text: 'DocShare transformed our remote workflow—it\'s fast, secure, and incredibly intuitive.', 
-      author: 'Alex R., Tech Lead at Innovate Inc.',
-      avatar: 'AR'
+    {
+      text: "DocShare transformed our remote workflow—it's fast, secure, and incredibly intuitive.",
+      author: "Alex R., Tech Lead at Innovate Inc.",
+      avatar: "AR",
     },
-    { 
-      text: 'The security features give us peace of mind while collaborating with international teams.', 
-      author: 'Sarah M., Security Analyst at Global Corp',
-      avatar: 'SM'
+    {
+      text: "The security features give us peace of mind while collaborating with international teams.",
+      author: "Sarah M., Security Analyst at Global Corp",
+      avatar: "SM",
     },
-    { 
-      text: 'Best document management solution we\'ve implemented. The sync is flawless.', 
-      author: 'James K., Project Manager at TechFlow',
-      avatar: 'JK'
-    }
+    {
+      text: "Best document management solution we've implemented. The sync is flawless.",
+      author: "James K., Project Manager at TechFlow",
+      avatar: "JK",
+    },
   ];
 
   const integrations = [
-    { name: 'Google Workspace', icon: 'G' },
-    { name: 'Microsoft 365', icon: 'M' },
-    { name: 'Slack', icon: 'S' },
-    { name: 'Notion', icon: 'N' },
-    { name: 'Figma', icon: 'F' },
-    { name: 'Zoom', icon: 'Z' }
+    { name: "Google Workspace", icon: "G" },
+    { name: "Microsoft 365", icon: "M" },
+    { name: "Slack", icon: "S" },
+    { name: "Notion", icon: "N" },
+    { name: "Figma", icon: "F" },
+    { name: "Zoom", icon: "Z" },
   ];
 
   const handleNewsletterSubmit = (e) => {
     e.preventDefault();
     // Handle newsletter signup
-    console.log('Newsletter signup:', email);
-    setEmail('');
+    console.log("Newsletter signup:", email);
+    setEmail("");
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 font-sans antialiased">
-
       {/* Enhanced Header */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm border-b border-gray-200">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
@@ -108,33 +120,48 @@ const Landing = () => {
               DocShare
             </span>
           </div>
-          
+
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-8">
-            <a href="#features" className="text-gray-600 hover:text-blue-600 transition duration-150 font-medium group">
+            <a
+              href="#features"
+              className="text-gray-600 hover:text-blue-600 transition duration-150 font-medium group"
+            >
               Features
               <div className="h-0.5 bg-blue-600 scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
             </a>
-            <a href="#benefits" className="text-gray-600 hover:text-blue-600 transition duration-150 font-medium group">
+            <a
+              href="#benefits"
+              className="text-gray-600 hover:text-blue-600 transition duration-150 font-medium group"
+            >
               Benefits
               <div className="h-0.5 bg-blue-600 scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
             </a>
-            <a href="#pricing" className="text-gray-600 hover:text-blue-600 transition duration-150 font-medium group">
+            <a
+              href="#pricing"
+              className="text-gray-600 hover:text-blue-600 transition duration-150 font-medium group"
+            >
               Pricing
               <div className="h-0.5 bg-blue-600 scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
             </a>
-            <a href="#integrations" className="text-gray-600 hover:text-blue-600 transition duration-150 font-medium group">
+            <a
+              href="#integrations"
+              className="text-gray-600 hover:text-blue-600 transition duration-150 font-medium group"
+            >
               Integrations
               <div className="h-0.5 bg-blue-600 scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
             </a>
           </nav>
 
           <div className="hidden lg:flex items-center space-x-4">
-            <Link to="/login" className="text-gray-600 font-medium hover:text-blue-600 transition duration-150">
+            <Link
+              to="/login"
+              className="text-gray-600 font-medium hover:text-blue-600 transition duration-150"
+            >
               Login
             </Link>
-            <Link 
-              to="/register" 
+            <Link
+              to="/register"
               className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105"
             >
               Get Started Free
@@ -142,7 +169,7 @@ const Landing = () => {
           </div>
 
           {/* Mobile Menu Button */}
-          <button 
+          <button
             className="lg:hidden text-gray-600"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
@@ -154,13 +181,41 @@ const Landing = () => {
         {mobileMenuOpen && (
           <div className="lg:hidden bg-white border-t border-gray-200 py-4 px-6">
             <div className="flex flex-col space-y-4">
-              <a href="#features" className="text-gray-600 hover:text-blue-600 font-medium">Features</a>
-              <a href="#benefits" className="text-gray-600 hover:text-blue-600 font-medium">Benefits</a>
-              <a href="#pricing" className="text-gray-600 hover:text-blue-600 font-medium">Pricing</a>
-              <a href="#integrations" className="text-gray-600 hover:text-blue-600 font-medium">Integrations</a>
+              <a
+                href="#features"
+                className="text-gray-600 hover:text-blue-600 font-medium"
+              >
+                Features
+              </a>
+              <a
+                href="#benefits"
+                className="text-gray-600 hover:text-blue-600 font-medium"
+              >
+                Benefits
+              </a>
+              <a
+                href="#pricing"
+                className="text-gray-600 hover:text-blue-600 font-medium"
+              >
+                Pricing
+              </a>
+              <a
+                href="#integrations"
+                className="text-gray-600 hover:text-blue-600 font-medium"
+              >
+                Integrations
+              </a>
               <div className="pt-4 border-t border-gray-200">
-                <Link to="/login" className="block text-gray-600 font-medium mb-3">Login</Link>
-                <Link to="/register" className="block bg-blue-600 text-white text-center py-2.5 rounded-lg font-semibold">
+                <Link
+                  to="/login"
+                  className="block text-gray-600 font-medium mb-3"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="block bg-blue-600 text-white text-center py-2.5 rounded-lg font-semibold"
+                >
                   Get Started Free
                 </Link>
               </div>
@@ -177,25 +232,32 @@ const Landing = () => {
             <FiTrendingUp className="mr-2" />
             Trusted by 50,000+ teams worldwide
           </div>
-          
+
           <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
-            Secure Document Management{' '}
+            Secure Document Management{" "}
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Made Simple
             </span>
           </h1>
-          
+
           <p className="text-xl md:text-2xl text-gray-600 mb-10 max-w-4xl mx-auto leading-relaxed">
-            Store, sync, and collaborate on documents with enterprise-grade security. 
-            Join thousands of teams who trust DocShare with their most important files.
+            Store, sync, and collaborate on documents with enterprise-grade
+            security. Join thousands of teams who trust DocShare with their most
+            important files.
           </p>
 
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-16">
-            <Link 
-              to="/register" 
+            <Link
+              to="/register"
               className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-lg px-12 py-4 rounded-xl font-semibold hover:shadow-2xl transition-all duration-300 hover:scale-105 shadow-lg w-full sm:w-auto text-center"
             >
               Start Free Trial - No Credit Card
+            </Link>
+            <Link
+              to="/login"
+              className="bg-white text-gray-700 border-2 border-gray-300 text-lg px-12 py-4 rounded-xl font-semibold hover:border-blue-600 hover:text-blue-600 transition-all duration-300 inline-flex items-center justify-center space-x-2 w-full sm:w-auto"
+            >
+              <span>Login</span>
             </Link>
             <button className="bg-white text-gray-700 border-2 border-gray-300 text-lg px-12 py-4 rounded-xl font-semibold hover:border-blue-600 hover:text-blue-600 transition-all duration-300 inline-flex items-center justify-center space-x-2 w-full sm:w-auto">
               <FiPlay className="w-5 h-5" />
@@ -207,7 +269,9 @@ const Landing = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto mb-20">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{stat.number}</div>
+                <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+                  {stat.number}
+                </div>
                 <div className="text-gray-600 font-medium">{stat.label}</div>
               </div>
             ))}
@@ -227,7 +291,9 @@ const Landing = () => {
                   <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
                     <FiCloud className="text-white text-3xl" />
                   </div>
-                  <p className="text-gray-700 font-semibold text-lg">Enterprise-Grade Document Management</p>
+                  <p className="text-gray-700 font-semibold text-lg">
+                    Enterprise-Grade Document Management
+                  </p>
                   <p className="text-gray-500 mt-2">Secure • Fast • Reliable</p>
                 </div>
               </div>
@@ -238,25 +304,38 @@ const Landing = () => {
         {/* Enhanced Testimonial Carousel */}
         <div className="max-w-6xl mx-auto mb-32">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Loved by Teams Worldwide</h2>
-            <p className="text-xl text-gray-600">See what our customers are saying</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Loved by Teams Worldwide
+            </h2>
+            <p className="text-xl text-gray-600">
+              See what our customers are saying
+            </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {reviews.map((review, index) => (
-              <div key={index} className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+              <div
+                key={index}
+                className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300"
+              >
                 <div className="flex text-yellow-500 mb-4">
                   {[...Array(5)].map((_, i) => (
                     <FiStar key={i} className="w-5 h-5 fill-current" />
                   ))}
                 </div>
-                <p className="text-gray-700 text-lg mb-6 italic">"{review.text}"</p>
+                <p className="text-gray-700 text-lg mb-6 italic">
+                  "{review.text}"
+                </p>
                 <div className="flex items-center">
                   <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold mr-4">
                     {review.avatar}
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900">{review.author.split(',')[0]}</div>
-                    <div className="text-gray-600 text-sm">{review.author.split(',')[1]}</div>
+                    <div className="font-semibold text-gray-900">
+                      {review.author.split(",")[0]}
+                    </div>
+                    <div className="text-gray-600 text-sm">
+                      {review.author.split(",")[1]}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -267,7 +346,9 @@ const Landing = () => {
         {/* Enhanced Features Section */}
         <section id="features" className="py-20">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Powerful Features for Modern Teams</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Powerful Features for Modern Teams
+            </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Everything you need to manage documents securely and efficiently
             </p>
@@ -276,24 +357,32 @@ const Landing = () => {
             {features.map((feature, index) => {
               const Icon = feature.icon;
               const colorMap = {
-                blue: 'from-blue-500 to-blue-600',
-                green: 'from-green-500 to-green-600',
-                purple: 'from-purple-500 to-purple-600'
+                blue: "from-blue-500 to-blue-600",
+                green: "from-green-500 to-green-600",
+                purple: "from-purple-500 to-purple-600",
               };
-              
+
               return (
-                <div 
+                <div
                   key={index}
                   className={`bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer ${
-                    activeFeature === index ? 'ring-2 ring-blue-500' : ''
+                    activeFeature === index ? "ring-2 ring-blue-500" : ""
                   }`}
                   onMouseEnter={() => setActiveFeature(index)}
                 >
-                  <div className={`w-16 h-16 bg-gradient-to-r ${colorMap[feature.color]} rounded-2xl flex items-center justify-center mb-6 shadow-lg`}>
+                  <div
+                    className={`w-16 h-16 bg-gradient-to-r ${
+                      colorMap[feature.color]
+                    } rounded-2xl flex items-center justify-center mb-6 shadow-lg`}
+                  >
                     <Icon className="text-white text-2xl" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">{feature.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{feature.desc}</p>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    {feature.desc}
+                  </p>
                   <div className="mt-6 flex items-center text-blue-600 font-semibold">
                     <span>Learn more</span>
                     <FiArrowRight className="ml-2 w-4 h-4" />
@@ -308,18 +397,25 @@ const Landing = () => {
         <section id="integrations" className="py-20 bg-white rounded-3xl mb-20">
           <div className="max-w-6xl mx-auto px-6">
             <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">Seamless Integrations</h2>
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                Seamless Integrations
+              </h2>
               <p className="text-xl text-gray-600">
                 Connect with your favorite tools and workflows
               </p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
               {integrations.map((integration, index) => (
-                <div key={index} className="bg-gray-50 rounded-2xl p-6 text-center hover:bg-white hover:shadow-lg transition-all duration-300 border border-gray-200">
+                <div
+                  key={index}
+                  className="bg-gray-50 rounded-2xl p-6 text-center hover:bg-white hover:shadow-lg transition-all duration-300 border border-gray-200"
+                >
                   <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold text-lg mx-auto mb-4">
                     {integration.icon}
                   </div>
-                  <div className="font-semibold text-gray-900">{integration.name}</div>
+                  <div className="font-semibold text-gray-900">
+                    {integration.name}
+                  </div>
                 </div>
               ))}
             </div>
@@ -330,7 +426,9 @@ const Landing = () => {
         <section id="benefits" className="py-20">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose DocShare?</h2>
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                Why Choose DocShare?
+              </h2>
               <p className="text-xl text-gray-600">
                 Built for security, performance, and collaboration
               </p>
@@ -338,29 +436,51 @@ const Landing = () => {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               <div className="bg-gradient-to-br from-blue-50 to-white rounded-2xl p-8 border border-blue-100">
                 <FiShield className="text-blue-600 text-3xl mb-6" />
-                <h4 className="text-xl font-bold text-gray-900 mb-4">Military-Grade Encryption</h4>
-                <p className="text-gray-600">Your files are protected with AES-256 encryption and zero-knowledge architecture.</p>
+                <h4 className="text-xl font-bold text-gray-900 mb-4">
+                  Military-Grade Encryption
+                </h4>
+                <p className="text-gray-600">
+                  Your files are protected with AES-256 encryption and
+                  zero-knowledge architecture.
+                </p>
               </div>
               <div className="bg-gradient-to-br from-purple-50 to-white rounded-2xl p-8 border border-purple-100">
                 <FiZap className="text-purple-600 text-3xl mb-6" />
-                <h4 className="text-xl font-bold text-gray-900 mb-4">Lightning Fast Sync</h4>
-                <p className="text-gray-600">Real-time synchronization across all your devices with our global CDN.</p>
+                <h4 className="text-xl font-bold text-gray-900 mb-4">
+                  Lightning Fast Sync
+                </h4>
+                <p className="text-gray-600">
+                  Real-time synchronization across all your devices with our
+                  global CDN.
+                </p>
               </div>
               <div className="bg-gradient-to-br from-green-50 to-white rounded-2xl p-8 border border-green-100">
                 <FiUsers className="text-green-600 text-3xl mb-6" />
-                <h4 className="text-xl font-bold text-gray-900 mb-4">Team Collaboration</h4>
-                <p className="text-gray-600">Advanced sharing controls, comments, and version history for teams.</p>
+                <h4 className="text-xl font-bold text-gray-900 mb-4">
+                  Team Collaboration
+                </h4>
+                <p className="text-gray-600">
+                  Advanced sharing controls, comments, and version history for
+                  teams.
+                </p>
               </div>
             </div>
           </div>
         </section>
 
         {/* Enhanced Pricing Section */}
-        <section id="pricing" className="py-20 bg-gradient-to-br from-gray-900 to-blue-900 rounded-3xl mb-20">
+        <section
+          id="pricing"
+          className="py-20 bg-gradient-to-br from-gray-900 to-blue-900 rounded-3xl mb-20"
+        >
           <div className="max-w-6xl mx-auto px-6">
             <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-white mb-4">Simple, Transparent Pricing</h2>
-              <p className="text-xl text-gray-300">No hidden fees. Cancel anytime.</p>
+              <h2 className="text-4xl font-bold text-white mb-4">
+                Simple, Transparent Pricing
+              </h2>
+              <p className="text-xl text-gray-300">
+                No hidden fees. Cancel anytime.
+              </p>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               {/* Free Plan */}
@@ -369,8 +489,7 @@ const Landing = () => {
                 <div className="text-4xl font-bold text-gray-900 mb-6">$0</div>
                 <ul className="space-y-4 mb-8">
                   <li className="flex items-center text-gray-600">
-                    <FiCheck className="text-green-500 mr-3" />
-                    2 GB Storage
+                    <FiCheck className="text-green-500 mr-3" />2 GB Storage
                   </li>
                   <li className="flex items-center text-gray-600">
                     <FiCheck className="text-green-500 mr-3" />
@@ -417,7 +536,9 @@ const Landing = () => {
 
               {/* Business Plan */}
               <div className="bg-white rounded-2xl p-8 text-center hover:scale-105 transition-transform duration-300">
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">Business</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                  Business
+                </h3>
                 <div className="text-4xl font-bold text-gray-900 mb-2">$15</div>
                 <div className="text-gray-600 mb-6">per user/month</div>
                 <ul className="space-y-4 mb-8">
@@ -441,8 +562,12 @@ const Landing = () => {
 
               {/* Enterprise Plan */}
               <div className="bg-white rounded-2xl p-8 text-center hover:scale-105 transition-transform duration-300">
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">Enterprise</h3>
-                <div className="text-4xl font-bold text-gray-900 mb-2">Custom</div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                  Enterprise
+                </h3>
+                <div className="text-4xl font-bold text-gray-900 mb-2">
+                  Custom
+                </div>
                 <div className="text-gray-600 mb-6">tailored for you</div>
                 <ul className="space-y-4 mb-8">
                   <li className="flex items-center text-gray-600">
@@ -473,12 +598,12 @@ const Landing = () => {
               Ready to Transform Your Document Workflow?
             </h2>
             <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
-              Join thousands of teams who trust DocShare with their most important documents. 
-              Start your free 14-day trial today.
+              Join thousands of teams who trust DocShare with their most
+              important documents. Start your free 14-day trial today.
             </p>
             <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6">
-              <Link 
-                to="/register" 
+              <Link
+                to="/register"
                 className="bg-white text-blue-600 text-lg px-12 py-4 rounded-xl font-semibold hover:shadow-2xl transition-all duration-300 hover:scale-105 shadow-lg w-full sm:w-auto text-center"
               >
                 Start Free Trial
@@ -496,11 +621,17 @@ const Landing = () => {
         {/* Newsletter Section */}
         <section className="py-16 bg-white rounded-3xl mb-20">
           <div className="max-w-4xl mx-auto text-center px-6">
-            <h3 className="text-3xl font-bold text-gray-900 mb-4">Stay Updated</h3>
+            <h3 className="text-3xl font-bold text-gray-900 mb-4">
+              Stay Updated
+            </h3>
             <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-              Get the latest product updates, security tips, and industry insights delivered to your inbox.
+              Get the latest product updates, security tips, and industry
+              insights delivered to your inbox.
             </p>
-            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+            <form
+              onSubmit={handleNewsletterSubmit}
+              className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto"
+            >
               <input
                 type="email"
                 value={email}
@@ -509,7 +640,7 @@ const Landing = () => {
                 className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
-              <button 
+              <button
                 type="submit"
                 className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300"
               >
@@ -533,62 +664,183 @@ const Landing = () => {
                 <span className="text-2xl font-bold">DocShare</span>
               </div>
               <p className="text-gray-400 max-w-md leading-relaxed">
-                Secure document sharing and management made simple for the modern, connected workforce.
+                Secure document sharing and management made simple for the
+                modern, connected workforce.
               </p>
               <div className="flex space-x-4 mt-6">
                 {/* Social media icons would go here */}
               </div>
             </div>
-            
+
             <div>
               <h4 className="font-semibold text-lg mb-6 text-white">Product</h4>
               <ul className="space-y-3 text-gray-400">
-                <li><a href="#features" className="hover:text-white transition duration-150">Features</a></li>
-                <li><a href="#pricing" className="hover:text-white transition duration-150">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition duration-150">Security</a></li>
-                <li><a href="#" className="hover:text-white transition duration-150">Integrations</a></li>
+                <li>
+                  <a
+                    href="#features"
+                    className="hover:text-white transition duration-150"
+                  >
+                    Features
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#pricing"
+                    className="hover:text-white transition duration-150"
+                  >
+                    Pricing
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition duration-150"
+                  >
+                    Security
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition duration-150"
+                  >
+                    Integrations
+                  </a>
+                </li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-semibold text-lg mb-6 text-white">Company</h4>
               <ul className="space-y-3 text-gray-400">
-                <li><a href="#" className="hover:text-white transition duration-150">About Us</a></li>
-                <li><a href="#" className="hover:text-white transition duration-150">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition duration-150">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition duration-150">Press</a></li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition duration-150"
+                  >
+                    About Us
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition duration-150"
+                  >
+                    Careers
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition duration-150"
+                  >
+                    Blog
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition duration-150"
+                  >
+                    Press
+                  </a>
+                </li>
               </ul>
             </div>
-            
+
             <div>
-              <h4 className="font-semibold text-lg mb-6 text-white">Resources</h4>
+              <h4 className="font-semibold text-lg mb-6 text-white">
+                Resources
+              </h4>
               <ul className="space-y-3 text-gray-400">
-                <li><a href="#" className="hover:text-white transition duration-150">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition duration-150">API Docs</a></li>
-                <li><a href="#" className="hover:text-white transition duration-150">Community</a></li>
-                <li><a href="#" className="hover:text-white transition duration-150">Status</a></li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition duration-150"
+                  >
+                    Help Center
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition duration-150"
+                  >
+                    API Docs
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition duration-150"
+                  >
+                    Community
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition duration-150"
+                  >
+                    Status
+                  </a>
+                </li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-semibold text-lg mb-6 text-white">Legal</h4>
               <ul className="space-y-3 text-gray-400">
-                <li><a href="#" className="hover:text-white transition duration-150">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition duration-150">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-white transition duration-150">Cookie Policy</a></li>
-                <li><a href="#" className="hover:text-white transition duration-150">DPA</a></li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition duration-150"
+                  >
+                    Privacy Policy
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition duration-150"
+                  >
+                    Terms of Service
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition duration-150"
+                  >
+                    Cookie Policy
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition duration-150"
+                  >
+                    DPA
+                  </a>
+                </li>
               </ul>
             </div>
           </div>
-          
+
           <div className="mt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-500 text-sm">
               &copy; {new Date().getFullYear()} DocShare. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
-              <a href="#" className="text-gray-500 hover:text-white text-sm">Privacy</a>
-              <a href="#" className="text-gray-500 hover:text-white text-sm">Terms</a>
-              <a href="#" className="text-gray-500 hover:text-white text-sm">Security</a>
+              <a href="#" className="text-gray-500 hover:text-white text-sm">
+                Privacy
+              </a>
+              <a href="#" className="text-gray-500 hover:text-white text-sm">
+                Terms
+              </a>
+              <a href="#" className="text-gray-500 hover:text-white text-sm">
+                Security
+              </a>
             </div>
           </div>
         </div>

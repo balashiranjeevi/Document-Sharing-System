@@ -137,6 +137,10 @@ public class DocumentController {
                     return ResponseEntity.badRequest().body(Map.of("message", "Title cannot be empty"));
                 }
                 existingDoc.setTitle(newTitle.trim());
+
+                // Log rename activity
+                activityLogService.logActivity(id, existingDoc.getOwnerId(), "RENAMED",
+                        "Document renamed from '" + oldTitle + "' to '" + newTitle.trim() + "'");
             }
 
             Document updated = documentService.updateDocument(id, existingDoc);
@@ -212,6 +216,11 @@ public class DocumentController {
             document.setVisibility(Document.Visibility.PRIVATE);
 
             Document saved = documentService.createDocument(document);
+
+            // Log upload activity
+            activityLogService.logActivity(saved.getId(), userId, "UPLOADED",
+                    "Document uploaded: " + saved.getFileName());
+
             return ResponseEntity.ok(new DocumentResponseDTO(saved));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", "Upload failed: " + e.getMessage()));
@@ -294,6 +303,9 @@ public class DocumentController {
             document.setVisibility(Document.Visibility.PUBLIC);
             Document updated = documentService.updateDocument(id, document);
             System.out.println("Document updated to PUBLIC visibility");
+
+            // Log share activity
+            activityLogService.logActivity(id, document.getOwnerId(), "SHARED", "Document shared: " + document.getFileName());
 
             // Generate proper share URL
             String baseUrl = request.getScheme() + "://" + request.getServerName();

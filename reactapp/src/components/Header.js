@@ -30,7 +30,9 @@ const Header = ({ onUpload, onSearch, viewMode = 'grid', onViewModeChange }) => 
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <h1 className="text-2xl font-bold text-blue-600">DocShare</h1>
+          <h1 className="text-2xl font-bold text-blue-600">
+            {user?.role === 'ADMIN' ? 'Admin Panel' : 'DocShare'}
+          </h1>
         </div>
 
         <div className="flex-1 max-w-md mx-8">
