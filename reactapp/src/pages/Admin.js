@@ -32,12 +32,6 @@ const Admin = () => {
   const [docSearch, setDocSearch] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [selectedDocs, setSelectedDocs] = useState([]);
-  const [settings, setSettings] = useState({
-    maxStoragePerUser: "200 MB",
-    autoDeleteTrash: "7",
-    emailVerification: true,
-    twoFactorAuth: true,
-  });
 
   useEffect(() => {
     const loadData = async () => {
@@ -50,7 +44,7 @@ const Admin = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await axios.get("/api/admin/stats");
+      const response = await axios.get("admin/stats");
       setStats(response.data);
     } catch (error) {
       console.error("Error fetching stats:", error);
@@ -66,7 +60,7 @@ const Admin = () => {
   const fetchUsers = async () => {
     try {
       setError(null);
-      const response = await axios.get("/api/admin/users");
+      const response = await axios.get("admin/users");
       setUsers(response.data);
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -77,7 +71,7 @@ const Admin = () => {
 
   const fetchDocuments = async () => {
     try {
-      const response = await axios.get("/api/admin/documents");
+      const response = await axios.get("admin/documents");
       setDocuments(response.data);
     } catch (error) {
       console.error("Error fetching documents:", error);
@@ -89,7 +83,7 @@ const Admin = () => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
 
     try {
-      await axios.delete(`/api/admin/users/${userId}`);
+      await axios.delete(`admin/users/${userId}`);
       await fetchUsers();
     } catch (error) {
       setError("Failed to delete user");
@@ -144,7 +138,7 @@ const Admin = () => {
 
       try {
         await Promise.all(
-          selectedUsers.map((id) => axios.delete(`/api/admin/users/${id}`))
+          selectedUsers.map((id) => axios.delete(`admin/users/${id}`))
         );
         setSelectedUsers([]);
         await fetchUsers();
@@ -155,7 +149,7 @@ const Admin = () => {
 
     const handleStatusChange = async (userId, newStatus) => {
       try {
-        await axios.put(`/api/admin/users/${userId}/status`, {
+        await axios.put(`admin/users/${userId}/status`, {
           status: newStatus,
         });
         await fetchUsers();

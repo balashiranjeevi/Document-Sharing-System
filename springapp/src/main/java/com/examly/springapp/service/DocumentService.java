@@ -239,4 +239,14 @@ public class DocumentService {
             return new java.util.ArrayList<>();
         }
     }
+
+    public List<Document> getAllDocuments() {
+        try {
+            return documentRepository.findAll();
+        } catch (Exception e) {
+            System.err.println("Error getting all documents: " + e.getMessage());
+            e.printStackTrace();
+            return new java.util.ArrayList<>();
+        }
+    }
 }

@@ -1,6 +1,7 @@
 package com.examly.springapp.controller;
 
 import com.examly.springapp.model.User;
+import com.examly.springapp.model.Document;
 import com.examly.springapp.service.UserService;
 import com.examly.springapp.service.DocumentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,7 @@ public class AdminController {
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getAdminStats() {
         Map<String, Object> stats = new HashMap<>();
-        
+
         try {
             List<User> allUsers = userService.getAllUsers();
             stats.put("totalUsers", allUsers.size());
@@ -42,7 +43,7 @@ public class AdminController {
             stats.put("totalDocuments", 0);
             stats.put("totalStorage", "0 GB");
         }
-        
+
         return ResponseEntity.ok(stats);
     }
 
@@ -68,5 +69,29 @@ public class AdminController {
         String status = request.get("status");
         User updatedUser = userService.updateUserStatus(userId, status);
         return ResponseEntity.ok(updatedUser);
+    }
+
+    @GetMapping("/documents")
+    public ResponseEntity<List<Map<String, Object>>> getAllDocuments() {
+        try {
+            List<Document> documents = documentService.getAllDocuments();
+            List<Map<String, Object>> documentList = documents.stream()
+                    .map(doc -> {
+                        Map<String, Object> docMap = new HashMap<>();
+                        docMap.put("id", doc.getId());
+                        docMap.put("name", doc.getTitle());
+                        docMap.put("type", doc.getFileType());
+                        docMap.put("size", doc.getSize());
+                        docMap.put("owner", doc.getOwnerId() != null ? "User " + doc.getOwnerId() : "Unknown");
+                        docMap.put("uploadedAt", doc.getCreatedAt() != null ? doc.getCreatedAt().toString() : null);
+                        return docMap;
+                    })
+                    .collect(java.util.stream.Collectors.toList());
+            return ResponseEntity.ok(documentList);
+        } catch (Exception e) {
+            System.err.println("Error getting all documents for admin: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.ok(new java.util.ArrayList<>());
+        }
     }
 }

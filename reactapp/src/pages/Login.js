@@ -41,11 +41,13 @@ const Login = () => {
   }, []);
 
   useEffect(() => {
-    if (user) {
+    if (user && location.pathname === "/login") {
       const redirectPath = user.role === "ADMIN" ? "/admin" : "/dashboard";
-      navigate(redirectPath, { replace: true });
+      // Allow admins to navigate back to previous page, replace login for regular users
+      const shouldReplace = user.role !== "ADMIN";
+      navigate(redirectPath, { replace: shouldReplace });
     }
-  }, [user, navigate]);
+  }, [user, navigate, location.pathname]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
