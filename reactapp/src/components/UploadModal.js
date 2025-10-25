@@ -1,128 +1,146 @@
-import React, { useState, useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { FiUpload, FiX, FiFile, FiCheck, FiAlertCircle } from 'react-icons/fi';
-import api from '../utils/api';
+import React, { useState, useCallback } from "react";
+import { useDropzone } from "react-dropzone";
+import { FiUpload, FiX, FiFile, FiCheck, FiAlertCircle } from "react-icons/fi";
+import api from "../utils/api";
 
 const UploadModal = ({ onClose, onSuccess }) => {
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState({});
 
   const onDrop = useCallback((acceptedFiles, rejectedFiles) => {
-    const newFiles = acceptedFiles.map(file => ({
+    const newFiles = acceptedFiles.map((file) => ({
       file,
       id: Math.random().toString(36).substr(2, 9),
-      status: 'pending',
+      status: "pending",
       progress: 0,
-      error: null
+      error: null,
     }));
 
     rejectedFiles.forEach(({ file, errors }) => {
       newFiles.push({
         file,
         id: Math.random().toString(36).substr(2, 9),
-        status: 'error',
+        status: "error",
         progress: 0,
-        error: errors[0]?.message || 'File rejected'
+        error: errors[0]?.message || "File rejected",
       });
     });
 
-    setFiles(prev => [...prev, ...newFiles]);
+    setFiles((prev) => [...prev, ...newFiles]);
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     maxSize: 50 * 1024 * 1024, // 50MB
     accept: {
-      'application/pdf': ['.pdf'],
-      'application/msword': ['.doc'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-      'text/plain': ['.txt'],
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif']
-    }
+      "application/pdf": [".pdf"],
+      "application/msword": [".doc"],
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        [".docx"],
+      "text/plain": [".txt"],
+      "image/*": [".png", ".jpg", ".jpeg", ".gif"],
+    },
   });
 
   const removeFile = (id) => {
-    setFiles(prev => prev.filter(f => f.id !== id));
+    setFiles((prev) => prev.filter((f) => f.id !== id));
   };
 
   const uploadFiles = async () => {
     if (!files.length || uploading) return;
 
     setUploading(true);
-    
+
     for (const fileItem of files) {
-      if (fileItem.status !== 'pending') continue;
+      if (fileItem.status !== "pending") continue;
 
       try {
-        setFiles(prev => prev.map(f => 
-          f.id === fileItem.id ? { ...f, status: 'uploading', progress: 0 } : f
-        ));
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.id === fileItem.id
+              ? { ...f, status: "uploading", progress: 0 }
+              : f
+          )
+        );
 
         const formData = new FormData();
-        formData.append('file', fileItem.file);
-        formData.append('title', fileItem.file.name);
-        formData.append('visibility', 'PRIVATE');
+        formData.append("file", fileItem.file);
+        formData.append("title", fileItem.file.name);
+        formData.append("visibility", "PRIVATE");
 
         // Simulate progress for demo
         const progressInterval = setInterval(() => {
-          setFiles(prev => prev.map(f => {
-            if (f.id === fileItem.id && f.progress < 90) {
-              return { ...f, progress: f.progress + 10 };
-            }
-            return f;
-          }));
+          setFiles((prev) =>
+            prev.map((f) => {
+              if (f.id === fileItem.id && f.progress < 90) {
+                return { ...f, progress: f.progress + 10 };
+              }
+              return f;
+            })
+          );
         }, 200);
 
-        await api.post('/documents/upload', formData, {
+        await api.post("/documents/upload", formData, {
           headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+            "Content-Type": "multipart/form-data",
+          },
         });
-        
-        clearInterval(progressInterval);
-        setFiles(prev => prev.map(f => 
-          f.id === fileItem.id ? { ...f, status: 'success', progress: 100 } : f
-        ));
 
+        clearInterval(progressInterval);
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.id === fileItem.id
+              ? { ...f, status: "success", progress: 100 }
+              : f
+          )
+        );
       } catch (error) {
-        setFiles(prev => prev.map(f => 
-          f.id === fileItem.id ? { 
-            ...f, 
-            status: 'error', 
-            error: error.response?.data?.message || 'Upload failed' 
-          } : f
-        ));
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.id === fileItem.id
+              ? {
+                  ...f,
+                  status: "error",
+                  error: error.response?.data?.message || "Upload failed",
+                }
+              : f
+          )
+        );
       }
     }
 
     setUploading(false);
-    
+
     // Show success notification and reset for next upload
-    const successCount = files.filter(f => f.status === 'success').length;
+    const successCount = files.filter((f) => f.status === "success").length;
     if (successCount > 0) {
       setTimeout(() => {
-        alert(`${successCount} file(s) uploaded successfully!`);
-        setFiles([]); // Reset files for next upload
         onSuccess();
+        setFiles([]); // Reset files for next upload
       }, 1000);
     }
   };
 
   const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'success': return <FiCheck className="text-green-500" size={16} />;
-      case 'error': return <FiAlertCircle className="text-red-500" size={16} />;
-      case 'uploading': return <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>;
-      default: return <FiFile className="text-gray-400" size={16} />;
+      case "success":
+        return <FiCheck className="text-green-500" size={16} />;
+      case "error":
+        return <FiAlertCircle className="text-red-500" size={16} />;
+      case "uploading":
+        return (
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+        );
+      default:
+        return <FiFile className="text-gray-400" size={16} />;
     }
   };
 
@@ -143,15 +161,15 @@ const UploadModal = ({ onClose, onSuccess }) => {
           <div
             {...getRootProps()}
             className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-              isDragActive 
-                ? 'border-blue-600 bg-blue-50' 
-                : 'border-gray-300 hover:border-gray-400'
+              isDragActive
+                ? "border-blue-600 bg-blue-50"
+                : "border-gray-300 hover:border-gray-400"
             }`}
           >
             <input {...getInputProps()} />
             <FiUpload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
             <p className="text-lg font-medium text-gray-900 mb-2">
-              {isDragActive ? 'Drop files here' : 'Drag & drop files here'}
+              {isDragActive ? "Drop files here" : "Drag & drop files here"}
             </p>
             <p className="text-gray-500 mb-4">or click to browse</p>
             <p className="text-sm text-gray-400">
@@ -161,10 +179,15 @@ const UploadModal = ({ onClose, onSuccess }) => {
 
           {files.length > 0 && (
             <div className="mt-6">
-              <h3 className="text-sm font-medium text-gray-900 mb-3">Files to upload</h3>
+              <h3 className="text-sm font-medium text-gray-900 mb-3">
+                Files to upload
+              </h3>
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {files.map((fileItem) => (
-                  <div key={fileItem.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div
+                    key={fileItem.id}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
                     <div className="flex items-center space-x-3 flex-1">
                       {getStatusIcon(fileItem.status)}
                       <div className="flex-1 min-w-0">
@@ -175,15 +198,17 @@ const UploadModal = ({ onClose, onSuccess }) => {
                           {formatFileSize(fileItem.file.size)}
                         </p>
                         {fileItem.error && (
-                          <p className="text-xs text-red-500 mt-1">{fileItem.error}</p>
+                          <p className="text-xs text-red-500 mt-1">
+                            {fileItem.error}
+                          </p>
                         )}
                       </div>
                     </div>
 
-                    {fileItem.status === 'uploading' && (
+                    {fileItem.status === "uploading" && (
                       <div className="w-20">
                         <div className="bg-gray-200 rounded-full h-2">
-                          <div 
+                          <div
                             className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                             style={{ width: `${fileItem.progress}%` }}
                           ></div>
@@ -191,7 +216,7 @@ const UploadModal = ({ onClose, onSuccess }) => {
                       </div>
                     )}
 
-                    {fileItem.status === 'pending' && (
+                    {fileItem.status === "pending" && (
                       <button
                         onClick={() => removeFile(fileItem.id)}
                         className="p-1 hover:bg-gray-200 rounded"
@@ -219,7 +244,11 @@ const UploadModal = ({ onClose, onSuccess }) => {
             disabled={!files.length || uploading}
             className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {uploading ? 'Uploading...' : `Upload ${files.filter(f => f.status === 'pending').length} files`}
+            {uploading
+              ? "Uploading..."
+              : `Upload ${
+                  files.filter((f) => f.status === "pending").length
+                } files`}
           </button>
         </div>
       </div>

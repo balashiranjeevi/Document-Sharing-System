@@ -33,6 +33,9 @@ public class AdminController {
     @Autowired
     private com.examly.springapp.service.FileStorageService fileStorageService;
 
+    @Autowired
+    private com.examly.springapp.service.SettingsService settingsService;
+
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getAdminStats() {
         Map<String, Object> stats = new HashMap<>();
@@ -66,6 +69,18 @@ public class AdminController {
         }
     }
 
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<User> getUserById(@PathVariable Long userId) {
+        try {
+            User user = userService.getUserById(userId);
+            return ResponseEntity.ok(user);
+        } catch (Exception e) {
+            System.err.println("Error getting user by ID: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     @DeleteMapping("/users/{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
@@ -76,6 +91,25 @@ public class AdminController {
     public ResponseEntity<User> updateUserStatus(@PathVariable Long userId, @RequestBody Map<String, String> request) {
         String status = request.get("status");
         User updatedUser = userService.updateUserStatus(userId, status);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    @PutMapping("/users/{userId}")
+    public ResponseEntity<User> updateUser(@PathVariable Long userId, @RequestBody Map<String, String> request) {
+        String name = request.get("name");
+        String email = request.get("email");
+        String password = request.get("password");
+
+        User updatedUser;
+        if (password != null && !password.trim().isEmpty()) {
+            // Update both user info and password
+            updatedUser = userService.updateUser(userId, name, email);
+            updatedUser = userService.updateUserPassword(userId, password);
+        } else {
+            // Update only user info
+            updatedUser = userService.updateUser(userId, name, email);
+        }
+
         return ResponseEntity.ok(updatedUser);
     }
 
@@ -199,6 +233,31 @@ public class AdminController {
                 return "delete";
             default:
                 return "edit";
+        }
+    }
+
+    @GetMapping("/settings")
+    public ResponseEntity<com.examly.springapp.model.Settings> getSettings() {
+        try {
+            com.examly.springapp.model.Settings settings = settingsService.getSettings();
+            return ResponseEntity.ok(settings);
+        } catch (Exception e) {
+            System.err.println("Error getting settings: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
+    }
+
+    @PutMapping("/settings")
+    public ResponseEntity<com.examly.springapp.model.Settings> updateSettings(
+            @RequestBody com.examly.springapp.model.Settings settings) {
+        try {
+            com.examly.springapp.model.Settings updatedSettings = settingsService.updateSettings(settings);
+            return ResponseEntity.ok(updatedSettings);
+        } catch (Exception e) {
+            System.err.println("Error updating settings: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
         }
     }
 }

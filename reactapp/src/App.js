@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
+import EditUser from "./pages/EditUser";
 import SharedDocument from "./pages/SharedDocument";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ToastProvider } from "./contexts/ToastContext";
@@ -84,6 +85,14 @@ function App() {
                   element={
                     <ProtectedRoute adminOnly={true}>
                       <Admin />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/edit-user/:id"
+                  element={
+                    <ProtectedRoute adminOnly={true}>
+                      <EditUser />
                     </ProtectedRoute>
                   }
                 />

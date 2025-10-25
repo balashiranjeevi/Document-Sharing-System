@@ -27,6 +27,9 @@ public class DocumentController {
     private DocumentService documentService;
 
     @Autowired
+    private com.examly.springapp.service.SettingsService settingsService;
+
+    @Autowired
     private com.examly.springapp.service.FileStorageService fileStorageService;
 
     @Autowired
@@ -199,8 +202,9 @@ public class DocumentController {
 
             // Check storage limit
             if (!documentService.checkStorageLimit(userId, file.getSize())) {
+                String maxStorageStr = settingsService.getSettings().getMaxStoragePerUser();
                 return ResponseEntity.badRequest()
-                        .body(Map.of("message", "Storage limit exceeded. Maximum 200MB allowed."));
+                        .body(Map.of("message", "Storage limit exceeded. Maximum " + maxStorageStr + " allowed."));
             }
 
             // Store file and get unique filename
@@ -305,7 +309,8 @@ public class DocumentController {
             System.out.println("Document updated to PUBLIC visibility");
 
             // Log share activity
-            activityLogService.logActivity(id, document.getOwnerId(), "SHARED", "Document shared: " + document.getFileName());
+            activityLogService.logActivity(id, document.getOwnerId(), "SHARED",
+                    "Document shared: " + document.getFileName());
 
             // Generate proper share URL
             String baseUrl = request.getScheme() + "://" + request.getServerName();

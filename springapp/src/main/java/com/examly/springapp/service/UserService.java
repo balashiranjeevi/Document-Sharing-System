@@ -55,4 +55,26 @@ public class UserService {
         user.setStatus(status);
         return userRepository.save(user);
     }
+
+    public User updateUser(Long id, String name, String email) {
+        User user = getUserById(id);
+        if (email != null && !email.equals(user.getEmail()) && userRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("Email already used");
+        }
+        if (name != null) {
+            user.setName(name);
+        }
+        if (email != null) {
+            user.setEmail(email);
+        }
+        return userRepository.save(user);
+    }
+
+    public User updateUserPassword(Long id, String password) {
+        User user = getUserById(id);
+        if (password != null && !password.trim().isEmpty()) {
+            user.setPasswordHash(passwordEncoder.encode(password));
+        }
+        return userRepository.save(user);
+    }
 }

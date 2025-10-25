@@ -34,3 +34,18 @@ CREATE TABLE IF NOT EXISTS documents (
     parent_folder_id BIGINT,
     FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- Create settings table
+CREATE TABLE IF NOT EXISTS settings (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    max_storage_per_user VARCHAR(50) DEFAULT '200 MB',
+    auto_delete_trash_after INT DEFAULT 7,
+    require_email_verification BOOLEAN DEFAULT TRUE,
+    enable_two_factor_auth BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Insert default settings
+INSERT INTO settings (max_storage_per_user, auto_delete_trash_after, require_email_verification, enable_two_factor_auth) VALUES
+('200 MB', 7, TRUE, TRUE);

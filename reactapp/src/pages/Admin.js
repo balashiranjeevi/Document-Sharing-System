@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FiUsers,
   FiFile,
@@ -9,16 +10,10 @@ import {
   FiDownload,
   FiTrash2,
   FiEdit,
-  FiRefreshCw,
   FiTrendingUp,
-  FiShield,
-  FiDatabase,
   FiClock,
   FiEye,
   FiUserCheck,
-  FiUserX,
-  FiMail,
-  FiBell,
   FiHardDrive,
   FiZap,
 } from "react-icons/fi";
@@ -29,6 +24,7 @@ import ActivityLog from "../components/ActivityLog";
 import axios from "axios";
 
 const Admin = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("users");
   const [users, setUsers] = useState([]);
   const [documents, setDocuments] = useState([]);
@@ -45,6 +41,13 @@ const Admin = () => {
   const [docSearch, setDocSearch] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [selectedDocs, setSelectedDocs] = useState([]);
+  const [settings, setSettings] = useState({
+    maxStoragePerUser: "200 MB",
+    autoDeleteTrashAfter: 7,
+    requireEmailVerification: true,
+    enableTwoFactorAuth: true,
+  });
+  const [savingSettings, setSavingSettings] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -54,6 +57,7 @@ const Admin = () => {
         fetchUsers(),
         fetchDocuments(),
         fetchActivities(),
+        fetchSettings(),
       ]);
       setLoading(false);
     };
@@ -65,6 +69,7 @@ const Admin = () => {
       fetchUsers();
       fetchDocuments();
       fetchActivities();
+      fetchSettings();
     }, 30000);
 
     return () => clearInterval(interval);
@@ -117,6 +122,21 @@ const Admin = () => {
     }
   };
 
+  const fetchSettings = async () => {
+    try {
+      const response = await axios.get("admin/settings");
+      setSettings(response.data);
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+      setSettings({
+        maxStoragePerUser: "200 MB",
+        autoDeleteTrashAfter: 7,
+        requireEmailVerification: true,
+        enableTwoFactorAuth: true,
+      });
+    }
+  };
+
   const handleDeleteUser = async (userId) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
 
@@ -158,13 +178,27 @@ const Admin = () => {
     }
   };
 
+  const handleSaveSettings = async () => {
+    setSavingSettings(true);
+    try {
+      await axios.put("admin/settings", settings);
+      setError(null); // Clear any previous errors
+      // Optionally show success message
+      alert("Settings saved successfully!");
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      setError("Failed to save settings");
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
   const tabs = [
     { id: "overview", label: "Overview", icon: FiBarChart },
     { id: "users", label: "Users", icon: FiUsers },
     { id: "documents", label: "Documents", icon: FiFile },
     { id: "analytics", label: "Analytics", icon: FiTrendingUp },
     { id: "activity", label: "Activity", icon: FiActivity },
-    { id: "system", label: "System", icon: FiShield },
     { id: "settings", label: "Settings", icon: FiSettings },
   ];
 
@@ -364,15 +398,20 @@ const Admin = () => {
                       : "N/A"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button className="text-blue-600 hover:text-blue-700 mr-3">
-                      <FiEdit size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteUser(user.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <FiTrash2 size={16} />
-                    </button>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => navigate(`/admin/edit-user/${user.id}`)}
+                        className="text-blue-600 hover:text-blue-700"
+                      >
+                        <FiEdit size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteUser(user.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <FiTrash2 size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -798,7 +837,13 @@ const Admin = () => {
                           </label>
                           <input
                             type="text"
-                            defaultValue="200 MB"
+                            value={settings.maxStoragePerUser || "200 MB"}
+                            onChange={(e) =>
+                              setSettings({
+                                ...settings,
+                                maxStoragePerUser: e.target.value,
+                              })
+                            }
                             className="w-full px-3 py-2 border border-gray-300 rounded-md"
                           />
                         </div>
@@ -806,7 +851,16 @@ const Admin = () => {
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Auto-delete Trash After
                           </label>
-                          <select className="w-full px-3 py-2 border border-gray-300 rounded-md">
+                          <select
+                            value={settings.autoDeleteTrashAfter || 7}
+                            onChange={(e) =>
+                              setSettings({
+                                ...settings,
+                                autoDeleteTrashAfter: parseInt(e.target.value),
+                              })
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                          >
                             <option value="2">2 days</option>
                             <option value="7">7 days</option>
                             <option value="30">30 days</option>
@@ -822,7 +876,13 @@ const Admin = () => {
                         <label className="flex items-center">
                           <input
                             type="checkbox"
-                            defaultChecked
+                            checked={settings.requireEmailVerification || false}
+                            onChange={(e) =>
+                              setSettings({
+                                ...settings,
+                                requireEmailVerification: e.target.checked,
+                              })
+                            }
                             className="mr-2"
                           />
                           <span className="text-sm text-gray-700">
@@ -832,7 +892,13 @@ const Admin = () => {
                         <label className="flex items-center">
                           <input
                             type="checkbox"
-                            defaultChecked
+                            checked={settings.enableTwoFactorAuth || false}
+                            onChange={(e) =>
+                              setSettings({
+                                ...settings,
+                                enableTwoFactorAuth: e.target.checked,
+                              })
+                            }
                             className="mr-2"
                           />
                           <span className="text-sm text-gray-700">
@@ -842,8 +908,16 @@ const Admin = () => {
                       </div>
                     </div>
                     <div>
-                      <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-                        Save Settings
+                      <button
+                        onClick={handleSaveSettings}
+                        disabled={savingSettings}
+                        className={`px-4 py-2 rounded-md text-white ${
+                          savingSettings
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : "bg-blue-600 hover:bg-blue-700"
+                        }`}
+                      >
+                        {savingSettings ? "Saving..." : "Save Settings"}
                       </button>
                     </div>
                   </div>

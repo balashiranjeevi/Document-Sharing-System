@@ -25,6 +25,9 @@ public class DocumentService {
     @Autowired
     private DocumentRepository documentRepository;
 
+    @Autowired
+    private com.examly.springapp.service.SettingsService settingsService;
+
     public Page<Document> getAllDocuments(int page, int size, String sortBy, String sortDir, String search) {
         try {
             Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
@@ -167,8 +170,35 @@ public class DocumentService {
 
     public boolean checkStorageLimit(Long userId, long fileSize) {
         long currentUsage = getUserStorageUsed(userId);
-        long maxStorage = 200 * 1024 * 1024; // 200MB in bytes
+        String maxStorageStr = settingsService.getSettings().getMaxStoragePerUser();
+        long maxStorage = parseStorageLimit(maxStorageStr); // Parse "200 MB" to bytes
         return (currentUsage + fileSize) <= maxStorage;
+    }
+
+    private long parseStorageLimit(String storageStr) {
+        if (storageStr == null || storageStr.trim().isEmpty()) {
+            return 200 * 1024 * 1024; // Default 200MB
+        }
+        try {
+            String[] parts = storageStr.trim().toUpperCase().split("\\s+");
+            if (parts.length != 2) {
+                return 200 * 1024 * 1024; // Default
+            }
+            long value = Long.parseLong(parts[0]);
+            String unit = parts[1];
+            switch (unit) {
+                case "MB":
+                    return value * 1024 * 1024;
+                case "GB":
+                    return value * 1024 * 1024 * 1024;
+                case "KB":
+                    return value * 1024;
+                default:
+                    return value; // Assume bytes
+            }
+        } catch (Exception e) {
+            return 200 * 1024 * 1024; // Default on parse error
+        }
     }
 
     public List<Document> getDocumentsByFileType(String type) {
@@ -215,9 +245,10 @@ public class DocumentService {
             stats.put("shared", getSharedDocumentsCount());
             stats.put("trash", getTrashedDocumentsCount());
             stats.put("storageUsed", documentRepository.getTotalStorage());
-            stats.put("maxStorage", 200L * 1024 * 1024); // 200MB in bytes
+            String maxStorageStr = settingsService.getSettings().getMaxStoragePerUser();
+            long maxStorage = parseStorageLimit(maxStorageStr);
+            stats.put("maxStorage", maxStorage);
             long storageUsed = (Long) stats.get("storageUsed");
-            long maxStorage = (Long) stats.get("maxStorage");
             stats.put("storagePercentage", maxStorage > 0 ? (double) storageUsed / maxStorage : 0.0);
             return stats;
         } catch (Exception e) {
@@ -230,7 +261,7 @@ public class DocumentService {
             stats.put("shared", 0L);
             stats.put("trash", 0L);
             stats.put("storageUsed", 0L);
-            stats.put("maxStorage", 200L * 1024 * 1024 * 1024);
+            stats.put("maxStorage", 200L * 1024 * 1024);
             stats.put("storagePercentage", 0.0);
             return stats;
         }

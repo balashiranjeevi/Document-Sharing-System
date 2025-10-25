@@ -1,11 +1,31 @@
-import React, { useState } from 'react';
-import { FiFile, FiImage, FiFileText, FiDownload, FiShare2, FiEdit3, FiTrash2, FiMoreVertical, FiEye } from 'react-icons/fi';
-import { documentService } from '../utils/api';
-import Notification from './Notification';
-import ShareModal from './ShareModal';
+import React, { useState } from "react";
+import {
+  FiFile,
+  FiImage,
+  FiFileText,
+  FiDownload,
+  FiShare2,
+  FiEdit3,
+  FiTrash2,
+  FiMoreVertical,
+  FiEye,
+} from "react-icons/fi";
+import { documentService } from "../utils/api";
+import Notification from "./Notification";
+import ShareModal from "./ShareModal";
 
-const DocumentList = ({ documents = [], loading, viewMode, onRefresh, error, onSort, sortBy, sortDir, activeSection, showNotification }) => {
-  const [selectedDoc, setSelectedDoc] = useState(null);
+const DocumentList = ({
+  documents = [],
+  loading,
+  viewMode,
+  onRefresh,
+  error,
+  onSort,
+  sortBy,
+  sortDir,
+  activeSection,
+  showNotification,
+}) => {
   const [showActions, setShowActions] = useState(null);
   const [shareModal, setShareModal] = useState(null);
 
@@ -13,90 +33,92 @@ const DocumentList = ({ documents = [], loading, viewMode, onRefresh, error, onS
     try {
       const response = await documentService.download(doc.id);
       const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.setAttribute('download', doc.fileName);
+      link.setAttribute("download", doc.fileName);
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error downloading file:', error);
+      console.error("Error downloading file:", error);
     }
   };
 
   const handleView = async (doc) => {
     try {
       const response = await documentService.view(doc.id);
-      const url = window.URL.createObjectURL(new Blob([response.data], { type: doc.fileType }));
-      window.open(url, '_blank');
+      const url = window.URL.createObjectURL(
+        new Blob([response.data], { type: doc.fileType })
+      );
+      window.open(url, "_blank");
     } catch (error) {
-      console.error('Error viewing file:', error);
+      console.error("Error viewing file:", error);
     }
   };
 
   const handleShare = async (doc) => {
     // Generate share URL immediately
     const shareUrl = `${window.location.origin}/shared/${doc.id}`;
-    
+
     // Show modal immediately
     setShareModal({
       document: doc,
-      shareUrl: shareUrl
+      shareUrl: shareUrl,
     });
-    
+
     try {
       // Try to call backend share API in background
       await documentService.share(doc.id);
-      showNotification('Document shared successfully!', 'success');
+      showNotification("Document shared successfully!", "success");
     } catch (error) {
-      showNotification('Share link generated', 'success');
+      showNotification("Share link generated", "success");
     }
   };
 
   const handleRename = async (doc) => {
-    const newTitle = prompt('Enter new title:', doc.title);
+    const newTitle = prompt("Enter new title:", doc.title);
     if (newTitle && newTitle !== doc.title && newTitle.trim()) {
       try {
         await documentService.rename(doc.id, newTitle.trim());
-        showNotification('Document renamed successfully!', 'success');
+        showNotification("Document renamed successfully!", "success");
         onRefresh?.();
       } catch (error) {
-        console.error('Error renaming document:', error);
-        showNotification('Failed to rename document', 'error');
+        console.error("Error renaming document:", error);
+        showNotification("Failed to rename document", "error");
       }
     }
   };
 
   const handleDelete = async (doc) => {
-    const isInTrash = activeSection === 'trash';
-    const action = isInTrash ? 'permanently delete' : 'move to trash';
-    
+    const isInTrash = activeSection === "trash";
+    const action = isInTrash ? "permanently delete" : "move to trash";
+
     if (window.confirm(`Are you sure you want to ${action} ${doc.title}?`)) {
       try {
         if (isInTrash) {
           await documentService.permanentDelete(doc.id);
-          showNotification('Document permanently deleted!', 'success');
+          showNotification("Document permanently deleted!", "success");
         } else {
           await documentService.delete(doc.id);
-          showNotification('Document moved to trash!', 'success');
+          showNotification("Document moved to trash!", "success");
         }
         onRefresh?.();
       } catch (error) {
         console.error(`Error ${action}:`, error);
-        showNotification(`Failed to ${action} document.`, 'error');
+        showNotification(`Failed to ${action} document.`, "error");
       }
     }
   };
-  
+
   const handleRestore = async (doc) => {
     try {
       await documentService.restore(doc.id);
-      showNotification('Document restored successfully!', 'success');
+      showNotification("Document restored successfully!", "success");
       onRefresh?.();
     } catch (error) {
-      console.error('Error restoring document:', error);
-      showNotification('Failed to restore document.', 'error');
+      console.error("Error restoring document:", error);
+      showNotification("Failed to restore document.", "error");
     }
   };
   const displayDocuments = documents;
@@ -104,25 +126,25 @@ const DocumentList = ({ documents = [], loading, viewMode, onRefresh, error, onS
   const displayError = error;
 
   const getFileIcon = (fileName) => {
-    const ext = fileName?.split('.').pop()?.toLowerCase();
-    if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) return FiImage;
-    if (['pdf', 'doc', 'docx', 'txt'].includes(ext)) return FiFileText;
+    const ext = fileName?.split(".").pop()?.toLowerCase();
+    if (["jpg", "jpeg", "png", "gif"].includes(ext)) return FiImage;
+    if (["pdf", "doc", "docx", "txt"].includes(ext)) return FiFileText;
     return FiFile;
   };
 
   const formatFileSize = (bytes) => {
-    if (!bytes) return '0 B';
+    if (!bytes) return "0 B";
     const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const sizes = ["B", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -144,24 +166,27 @@ const DocumentList = ({ documents = [], loading, viewMode, onRefresh, error, onS
   }
 
   if (!displayDocuments.length) {
-    const emptyMessage = activeSection === 'shared' 
-      ? 'No shared documents yet. Share some documents to see them here.'
-      : activeSection === 'trash'
-      ? 'Trash is empty. Deleted documents will appear here.'
-      : activeSection === 'recent'
-      ? 'No recent documents. Upload or modify documents to see them here.'
-      : 'Get started by uploading a document.';
-      
+    const emptyMessage =
+      activeSection === "shared"
+        ? "No shared documents yet. Share some documents to see them here."
+        : activeSection === "trash"
+        ? "Trash is empty. Deleted documents will appear here."
+        : activeSection === "recent"
+        ? "No recent documents. Upload or modify documents to see them here."
+        : "Get started by uploading a document.";
+
     return (
       <div className="text-center py-12">
         <FiFile className="mx-auto h-12 w-12 text-gray-400" />
-        <h3 className="mt-2 text-sm font-medium text-gray-900">No documents found</h3>
+        <h3 className="mt-2 text-sm font-medium text-gray-900">
+          No documents found
+        </h3>
         <p className="mt-1 text-sm text-gray-500">{emptyMessage}</p>
       </div>
     );
   }
 
-  if (viewMode === 'grid') {
+  if (viewMode === "grid") {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {displayDocuments.map((doc) => {
@@ -169,8 +194,7 @@ const DocumentList = ({ documents = [], loading, viewMode, onRefresh, error, onS
           return (
             <div
               key={doc.id}
-              className="group relative bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => setSelectedDoc(doc)}
+              className="group relative bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
             >
               <div className="flex flex-col items-center">
                 <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-3">
@@ -179,8 +203,12 @@ const DocumentList = ({ documents = [], loading, viewMode, onRefresh, error, onS
                 <h3 className="text-sm font-medium text-gray-900 text-center truncate w-full">
                   {doc.title || doc.fileName}
                 </h3>
-                <p className="text-xs text-gray-500 mt-1">{formatFileSize(doc.size)}</p>
-                <p className="text-xs text-gray-400 mt-1">{formatDate(doc.createdAt)}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {formatFileSize(doc.size)}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {formatDate(doc.createdAt)}
+                </p>
               </div>
 
               <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -196,49 +224,84 @@ const DocumentList = ({ documents = [], loading, viewMode, onRefresh, error, onS
 
                 {showActions === doc.id && (
                   <div className="absolute right-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); handleView(doc); setShowActions(null); }}
-                      className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleView(doc);
+                        setShowActions(null);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                    >
                       <FiEye size={14} />
                       <span>View</span>
                     </button>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); handleDownload(doc); setShowActions(null); }}
-                      className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownload(doc);
+                        setShowActions(null);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                    >
                       <FiDownload size={14} />
                       <span>Download</span>
                     </button>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); handleShare(doc); setShowActions(null); }}
-                      className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleShare(doc);
+                        setShowActions(null);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                    >
                       <FiShare2 size={14} />
                       <span>Share</span>
                     </button>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); handleRename(doc); setShowActions(null); }}
-                      className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRename(doc);
+                        setShowActions(null);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                    >
                       <FiEdit3 size={14} />
                       <span>Rename</span>
                     </button>
-                    {activeSection === 'trash' ? (
+                    {activeSection === "trash" ? (
                       <>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleRestore(doc); setShowActions(null); }}
-                          className="w-full text-left px-3 py-2 text-sm text-green-600 hover:bg-gray-100 flex items-center space-x-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRestore(doc);
+                            setShowActions(null);
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm text-green-600 hover:bg-gray-100 flex items-center space-x-2"
+                        >
                           <FiShare2 size={14} />
                           <span>Restore</span>
                         </button>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleDelete(doc); setShowActions(null); }}
-                          className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center space-x-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(doc);
+                            setShowActions(null);
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center space-x-2"
+                        >
                           <FiTrash2 size={14} />
                           <span>Delete Forever</span>
                         </button>
                       </>
                     ) : (
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); handleDelete(doc); setShowActions(null); }}
-                        className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center space-x-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(doc);
+                          setShowActions(null);
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center space-x-2"
+                      >
                         <FiTrash2 size={14} />
                         <span>Move to Trash</span>
                       </button>
@@ -258,45 +321,50 @@ const DocumentList = ({ documents = [], loading, viewMode, onRefresh, error, onS
       <div className="px-6 py-3 border-b border-gray-200">
         <div className="grid grid-cols-12 gap-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
           <div className="col-span-5">
-            <button 
-              onClick={() => onSort?.('title')}
+            <button
+              onClick={() => onSort?.("title")}
               className="flex items-center space-x-1 hover:text-gray-700"
             >
               <span>Name</span>
-              {sortBy === 'title' && <span>{sortDir === 'asc' ? '↑' : '↓'}</span>}
+              {sortBy === "title" && (
+                <span>{sortDir === "asc" ? "↑" : "↓"}</span>
+              )}
             </button>
           </div>
           <div className="col-span-2">
-            <button 
-              onClick={() => onSort?.('size')}
+            <button
+              onClick={() => onSort?.("size")}
               className="flex items-center space-x-1 hover:text-gray-700"
             >
               <span>Size</span>
-              {sortBy === 'size' && <span>{sortDir === 'asc' ? '↑' : '↓'}</span>}
+              {sortBy === "size" && (
+                <span>{sortDir === "asc" ? "↑" : "↓"}</span>
+              )}
             </button>
           </div>
           <div className="col-span-2">
-            <button 
-              onClick={() => onSort?.('createdAt')}
+            <button
+              onClick={() => onSort?.("createdAt")}
               className="flex items-center space-x-1 hover:text-gray-700"
             >
               <span>Modified</span>
-              {sortBy === 'createdAt' && <span>{sortDir === 'asc' ? '↑' : '↓'}</span>}
+              {sortBy === "createdAt" && (
+                <span>{sortDir === "asc" ? "↑" : "↓"}</span>
+              )}
             </button>
           </div>
           <div className="col-span-2">Owner</div>
           <div className="col-span-1"></div>
         </div>
       </div>
-      
+
       <div className="divide-y divide-gray-200">
         {displayDocuments.map((doc) => {
           const FileIcon = getFileIcon(doc.fileName);
           return (
             <div
               key={doc.id}
-              className="px-6 py-4 hover:bg-gray-50 cursor-pointer group"
-              onClick={() => setSelectedDoc(doc)}
+              className="px-6 py-4 hover:bg-gray-50 group"
             >
               <div className="grid grid-cols-12 gap-4 items-center">
                 <div className="col-span-5 flex items-center space-x-3">
@@ -314,7 +382,7 @@ const DocumentList = ({ documents = [], loading, viewMode, onRefresh, error, onS
                   {formatDate(doc.createdAt)}
                 </div>
                 <div className="col-span-2 text-sm text-gray-500">
-                  {doc.ownerName || 'You'}
+                  {doc.ownerName || "You"}
                 </div>
                 <div className="col-span-1">
                   <button
@@ -345,11 +413,11 @@ const DocumentList = ({ documents = [], loading, viewMode, onRefresh, error, onS
 
 const DocumentListWithNotification = (props) => {
   const [notification, setNotification] = useState(null);
-  
-  const showNotification = (message, type = 'info') => {
+
+  const showNotification = (message, type = "info") => {
     setNotification({ message, type });
   };
-  
+
   return (
     <>
       <DocumentList {...props} showNotification={showNotification} />
