@@ -518,14 +518,23 @@ const Admin = () => {
                         User Registration Trends
                       </h3>
                       <AdminChart
-                        data={[
-                          { name: "Jan", value: 65 },
-                          { name: "Feb", value: 59 },
-                          { name: "Mar", value: 80 },
-                          { name: "Apr", value: 81 },
-                          { name: "May", value: 56 },
-                          { name: "Jun", value: 55 },
-                        ]}
+                        data={(() => {
+                          const monthlyData = {};
+                          users.forEach((user) => {
+                            if (user.createdAt) {
+                              const date = new Date(user.createdAt);
+                              const month = date.toLocaleString("default", {
+                                month: "short",
+                              });
+                              monthlyData[month] =
+                                (monthlyData[month] || 0) + 1;
+                            }
+                          });
+                          return Object.keys(monthlyData).map((month) => ({
+                            name: month,
+                            value: monthlyData[month],
+                          }));
+                        })()}
                         type="line"
                         height={250}
                       />
@@ -535,12 +544,17 @@ const Admin = () => {
                         Document Types Distribution
                       </h3>
                       <AdminChart
-                        data={[
-                          { name: "PDF", value: 400 },
-                          { name: "DOC", value: 300 },
-                          { name: "TXT", value: 200 },
-                          { name: "IMG", value: 100 },
-                        ]}
+                        data={(() => {
+                          const typeData = {};
+                          documents.forEach((doc) => {
+                            const type = doc.type || "Unknown";
+                            typeData[type] = (typeData[type] || 0) + 1;
+                          });
+                          return Object.keys(typeData).map((type) => ({
+                            name: type,
+                            value: typeData[type],
+                          }));
+                        })()}
                         type="pie"
                         height={250}
                       />
@@ -557,7 +571,9 @@ const Admin = () => {
                           size={32}
                         />
                         <p className="text-sm text-gray-600">System Health</p>
-                        <p className="text-2xl font-bold text-green-600">98%</p>
+                        <p className="text-2xl font-bold text-green-600">
+                          {stats.totalUsers > 0 ? "98%" : "N/A"}
+                        </p>
                       </div>
                       <div className="text-center">
                         <FiHardDrive
@@ -565,7 +581,9 @@ const Admin = () => {
                           size={32}
                         />
                         <p className="text-sm text-gray-600">Storage Usage</p>
-                        <p className="text-2xl font-bold text-blue-600">45%</p>
+                        <p className="text-2xl font-bold text-blue-600">
+                          {stats.totalStorage || "0 GB"}
+                        </p>
                       </div>
                       <div className="text-center">
                         <FiClock
@@ -576,7 +594,7 @@ const Admin = () => {
                           Avg Response Time
                         </p>
                         <p className="text-2xl font-bold text-orange-600">
-                          120ms
+                          {activities.length > 0 ? "120ms" : "N/A"}
                         </p>
                       </div>
                     </div>
