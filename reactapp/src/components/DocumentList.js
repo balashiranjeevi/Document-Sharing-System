@@ -186,114 +186,100 @@ const DocumentList = ({
     );
   }
 
-  if (viewMode === "grid") {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {displayDocuments.map((doc) => {
-          const FileIcon = getFileIcon(doc.fileName);
-          return (
-            <div
-              key={doc.id}
-              className="group relative bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
-            >
-              <div className="flex flex-col items-center">
-                <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-3">
-                  <FileIcon className="text-blue-500" size={24} />
-                </div>
-                <h3 className="text-sm font-medium text-gray-900 text-center truncate w-full">
-                  {doc.title || doc.fileName}
-                </h3>
-                <p className="text-xs text-gray-500 mt-1">
-                  {formatFileSize(doc.size)}
-                </p>
-                <p className="text-xs text-gray-400 mt-1">
-                  {formatDate(doc.createdAt)}
-                </p>
+  const gridView = (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+      {displayDocuments.map((doc) => {
+        const FileIcon = getFileIcon(doc.fileName);
+        return (
+          <div
+            key={doc.id}
+            className="group relative bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
+          >
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-3">
+                <FileIcon className="text-blue-500" size={24} />
               </div>
+              <h3 className="text-sm font-medium text-gray-900 text-center truncate w-full">
+                {doc.title || doc.fileName}
+              </h3>
+              <p className="text-xs text-gray-500 mt-1">
+                {formatFileSize(doc.size)}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                {formatDate(doc.createdAt)}
+              </p>
+            </div>
 
-              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowActions(showActions === doc.id ? null : doc.id);
-                  }}
-                  className="p-1 rounded hover:bg-gray-100"
-                >
-                  <FiMoreVertical size={16} />
-                </button>
+            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowActions(showActions === doc.id ? null : doc.id);
+                }}
+                className="p-1 rounded hover:bg-gray-100"
+              >
+                <FiMoreVertical size={16} />
+              </button>
 
-                {showActions === doc.id && (
-                  <div className="absolute right-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleView(doc);
-                        setShowActions(null);
-                      }}
-                      className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
-                    >
-                      <FiEye size={14} />
-                      <span>View</span>
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDownload(doc);
-                        setShowActions(null);
-                      }}
-                      className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
-                    >
-                      <FiDownload size={14} />
-                      <span>Download</span>
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleShare(doc);
-                        setShowActions(null);
-                      }}
-                      className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
-                    >
-                      <FiShare2 size={14} />
-                      <span>Share</span>
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRename(doc);
-                        setShowActions(null);
-                      }}
-                      className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
-                    >
-                      <FiEdit3 size={14} />
-                      <span>Rename</span>
-                    </button>
-                    {activeSection === "trash" ? (
-                      <>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRestore(doc);
-                            setShowActions(null);
-                          }}
-                          className="w-full text-left px-3 py-2 text-sm text-green-600 hover:bg-gray-100 flex items-center space-x-2"
-                        >
-                          <FiShare2 size={14} />
-                          <span>Restore</span>
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(doc);
-                            setShowActions(null);
-                          }}
-                          className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center space-x-2"
-                        >
-                          <FiTrash2 size={14} />
-                          <span>Delete Forever</span>
-                        </button>
-                      </>
-                    ) : (
+              {showActions === doc.id && (
+                <div className="absolute right-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleView(doc);
+                      setShowActions(null);
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                  >
+                    <FiEye size={14} />
+                    <span>View</span>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDownload(doc);
+                      setShowActions(null);
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                  >
+                    <FiDownload size={14} />
+                    <span>Download</span>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleShare(doc);
+                      setShowActions(null);
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                  >
+                    <FiShare2 size={14} />
+                    <span>Share</span>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRename(doc);
+                      setShowActions(null);
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                  >
+                    <FiEdit3 size={14} />
+                    <span>Rename</span>
+                  </button>
+                  {activeSection === "trash" ? (
+                    <>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRestore(doc);
+                          setShowActions(null);
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm text-green-600 hover:bg-gray-100 flex items-center space-x-2"
+                      >
+                        <FiShare2 size={14} />
+                        <span>Restore</span>
+                      </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -303,20 +289,32 @@ const DocumentList = ({
                         className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center space-x-2"
                       >
                         <FiTrash2 size={14} />
-                        <span>Move to Trash</span>
+                        <span>Delete Forever</span>
                       </button>
-                    )}
-                  </div>
-                )}
-              </div>
+                    </>
+                  ) : (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(doc);
+                        setShowActions(null);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center space-x-2"
+                    >
+                      <FiTrash2 size={14} />
+                      <span>Move to Trash</span>
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
-          );
-        })}
-      </div>
-    );
-  }
+          </div>
+        );
+      })}
+    </div>
+  );
 
-  return (
+  const listView = (
     <div className="bg-white rounded-lg border border-gray-200">
       <div className="px-6 py-3 border-b border-gray-200">
         <div className="grid grid-cols-12 gap-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -362,10 +360,7 @@ const DocumentList = ({
         {displayDocuments.map((doc) => {
           const FileIcon = getFileIcon(doc.fileName);
           return (
-            <div
-              key={doc.id}
-              className="px-6 py-4 hover:bg-gray-50 group"
-            >
+            <div key={doc.id} className="px-6 py-4 hover:bg-gray-50 group">
               <div className="grid grid-cols-12 gap-4 items-center">
                 <div className="col-span-5 flex items-center space-x-3">
                   <div className="w-8 h-8 bg-blue-50 rounded flex items-center justify-center">
@@ -400,6 +395,12 @@ const DocumentList = ({
           );
         })}
       </div>
+    </div>
+  );
+
+  return (
+    <>
+      {viewMode === "grid" ? gridView : listView}
       {shareModal && (
         <ShareModal
           document={shareModal.document}
@@ -407,7 +408,7 @@ const DocumentList = ({
           onClose={() => setShareModal(null)}
         />
       )}
-    </div>
+    </>
   );
 };
 
