@@ -2,7 +2,7 @@ package com.examly.springapp.controller;
 
 import com.examly.springapp.model.User;
 import com.examly.springapp.model.Document;
-import com.examly.springapp.model.DocumentActivity;
+import com.examly.springapp.model.ActivityLog;
 import com.examly.springapp.service.UserService;
 import com.examly.springapp.service.DocumentService;
 import com.examly.springapp.service.ActivityLogService;
@@ -140,7 +140,7 @@ public class AdminController {
     @GetMapping("/activities")
     public ResponseEntity<List<Map<String, Object>>> getRecentActivities() {
         try {
-            List<DocumentActivity> activities = activityLogService.getRecentActivities();
+            List<ActivityLog> activities = activityLogService.getRecentActivities();
             List<Map<String, Object>> activityList = activities.stream()
                     .map(activity -> {
                         Map<String, Object> activityMap = new HashMap<>();
@@ -149,6 +149,9 @@ public class AdminController {
                         activityMap.put("description", activity.getDetails());
                         activityMap.put("timestamp",
                                 activity.getTimestamp() != null ? activity.getTimestamp().toString() : null);
+                        activityMap.put("userId", activity.getUser() != null ? activity.getUser().getId() : null);
+                        activityMap.put("documentId",
+                                activity.getDocument() != null ? activity.getDocument().getId() : null);
                         return activityMap;
                     })
                     .collect(java.util.stream.Collectors.toList());
@@ -169,7 +172,7 @@ public class AdminController {
             documentService.moveToTrash(documentId);
 
             // Log admin delete activity
-            activityLogService.logActivity(documentId, document.getOwnerId(), "DELETED",
+            activityLogService.logActivity(document, userService.getUserById(document.getOwnerId()), "DELETED",
                     "Document deleted by admin: " + document.getFileName());
 
             return ResponseEntity.ok().build();
@@ -194,7 +197,7 @@ public class AdminController {
 
             if (resource.exists() && resource.isReadable()) {
                 // Log admin download activity
-                activityLogService.logActivity(documentId, document.getOwnerId(), "DOWNLOADED",
+                activityLogService.logActivity(document, userService.getUserById(document.getOwnerId()), "DOWNLOADED",
                         "Document downloaded by admin: " + document.getFileName());
 
                 return ResponseEntity.ok()

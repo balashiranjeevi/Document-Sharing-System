@@ -85,6 +85,7 @@ const Dashboard = () => {
         recentUploads: data.recent || 0,
         storagePercentage: data.storagePercentage || 0,
         freeStorage: formatStorage(maxStorage - storageUsed),
+        maxStorageFormatted: formatStorage(maxStorage),
         sharedPercentage:
           totalFiles > 0 ? Math.round((sharedFiles / totalFiles) * 100) : 0,
       });
@@ -97,6 +98,7 @@ const Dashboard = () => {
         recentUploads: 0,
         storagePercentage: 0,
         freeStorage: "200 MB",
+        maxStorageFormatted: "200 MB",
         sharedPercentage: 0,
       });
     }
@@ -287,7 +289,7 @@ const Dashboard = () => {
       icon: FiBarChart,
       color: "green",
       trend: `${stats.freeStorage} free`,
-      description: "Of 200 MB total",
+      description: `Of ${stats.maxStorageFormatted} total`,
     },
     {
       title: "Shared Files",

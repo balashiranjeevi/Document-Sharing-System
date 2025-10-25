@@ -49,3 +49,30 @@ CREATE TABLE IF NOT EXISTS settings (
 -- Insert default settings
 INSERT INTO settings (max_storage_per_user, auto_delete_trash_after, require_email_verification, enable_two_factor_auth) VALUES
 ('200 MB', 7, TRUE, TRUE);
+
+-- Create document_permissions table for granular sharing
+CREATE TABLE IF NOT EXISTS document_permissions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    document_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    permission ENUM('VIEW', 'EDIT', 'DOWNLOAD') NOT NULL,
+    granted_by BIGINT NOT NULL,
+    granted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NULL,
+    FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (granted_by) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_document_user_permission (document_id, user_id, permission)
+);
+
+-- Create activity_log table for tracking document activities
+CREATE TABLE IF NOT EXISTS activity_log (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    document_id BIGINT,
+    user_id BIGINT,
+    action VARCHAR(50) NOT NULL,
+    details TEXT,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);

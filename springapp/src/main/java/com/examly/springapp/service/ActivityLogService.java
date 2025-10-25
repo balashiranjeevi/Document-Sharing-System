@@ -1,29 +1,42 @@
 package com.examly.springapp.service;
 
-import com.examly.springapp.model.DocumentActivity;
-import com.examly.springapp.repository.DocumentActivityRepository;
+import com.examly.springapp.model.ActivityLog;
+import com.examly.springapp.model.Document;
+import com.examly.springapp.model.User;
+import com.examly.springapp.repository.ActivityLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class ActivityLogService {
-    
+
     @Autowired
-    private DocumentActivityRepository activityRepository;
-    
-    public void logActivity(Long documentId, Long userId, String action, String details) {
-        DocumentActivity activity = new DocumentActivity();
-        activity.setDocumentId(documentId);
-        activity.setUserId(userId);
-        activity.setAction(action);
-        activity.setDetails(details);
-        activityRepository.save(activity);
+    private ActivityLogRepository activityLogRepository;
+
+    public void logActivity(Document document, User user, String action, String details) {
+        ActivityLog log = new ActivityLog();
+        log.setDocument(document);
+        log.setUser(user);
+        log.setAction(action);
+        log.setDetails(details);
+        activityLogRepository.save(log);
     }
-    
-    public java.util.List<DocumentActivity> getRecentActivities() {
-        return activityRepository.findAll(
-            org.springframework.data.domain.PageRequest.of(0, 50, 
-                org.springframework.data.domain.Sort.by("timestamp").descending())
-        ).getContent();
+
+    public List<ActivityLog> getDocumentActivity(Long documentId) {
+        return activityLogRepository.findByDocumentIdOrderByTimestampDesc(documentId);
+    }
+
+    public List<ActivityLog> getUserActivity(Long userId) {
+        return activityLogRepository.findByUserIdOrderByTimestampDesc(userId);
+    }
+
+    public List<ActivityLog> getRecentActivities() {
+        return activityLogRepository.findRecentActivities();
+    }
+
+    public List<ActivityLog> getRecentUserActivities(Long userId) {
+        return activityLogRepository.findRecentByUserId(userId);
     }
 }

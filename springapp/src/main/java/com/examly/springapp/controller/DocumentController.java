@@ -3,7 +3,12 @@ package com.examly.springapp.controller;
 import com.examly.springapp.dto.DocumentRequestDTO;
 import com.examly.springapp.dto.DocumentResponseDTO;
 import com.examly.springapp.model.Document;
+import com.examly.springapp.model.DocumentPermission;
+import com.examly.springapp.model.User;
 import com.examly.springapp.service.DocumentService;
+import com.examly.springapp.service.DocumentPermissionService;
+import com.examly.springapp.service.UserService;
+import com.examly.springapp.controller.WebSocketController;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -34,6 +39,15 @@ public class DocumentController {
 
     @Autowired
     private com.examly.springapp.service.ActivityLogService activityLogService;
+
+    @Autowired
+    private DocumentPermissionService documentPermissionService;
+
+    @Autowired
+    private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+
+    @Autowired
+    private UserService userService;
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAllDocuments(
@@ -142,7 +156,8 @@ public class DocumentController {
                 existingDoc.setTitle(newTitle.trim());
 
                 // Log rename activity
-                activityLogService.logActivity(id, existingDoc.getOwnerId(), "RENAMED",
+                User owner = userService.getUserById(existingDoc.getOwnerId());
+                activityLogService.logActivity(existingDoc, owner, "RENAMED",
                         "Document renamed from '" + oldTitle + "' to '" + newTitle.trim() + "'");
             }
 
@@ -222,7 +237,8 @@ public class DocumentController {
             Document saved = documentService.createDocument(document);
 
             // Log upload activity
-            activityLogService.logActivity(saved.getId(), userId, "UPLOADED",
+            User owner = userService.getUserById(userId);
+            activityLogService.logActivity(saved, owner, "UPLOADED",
                     "Document uploaded: " + saved.getFileName());
 
             return ResponseEntity.ok(new DocumentResponseDTO(saved));
@@ -309,8 +325,18 @@ public class DocumentController {
             System.out.println("Document updated to PUBLIC visibility");
 
             // Log share activity
-            activityLogService.logActivity(id, document.getOwnerId(), "SHARED",
+            User owner = userService.getUserById(document.getOwnerId());
+            activityLogService.logActivity(document, owner, "SHARED",
                     "Document shared: " + document.getFileName());
+
+            // Send WebSocket notification
+            WebSocketController.DocumentShareMessage shareMessage = new WebSocketController.DocumentShareMessage();
+            shareMessage.setDocumentId(id);
+            shareMessage.setDocumentTitle(document.getTitle());
+            shareMessage.setSharedByUserId(document.getOwnerId());
+            shareMessage.setSharedByUserName("User"); // Replace with actual user name
+            shareMessage.setPermission("VIEW");
+            messagingTemplate.convertAndSend("/topic/document/" + id + "/shares", shareMessage);
 
             // Generate proper share URL
             String baseUrl = request.getScheme() + "://" + request.getServerName();
@@ -330,6 +356,57 @@ public class DocumentController {
             System.err.println("Share failed: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of("message", "Share failed: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{documentId}/permissions")
+    public ResponseEntity<?> grantPermission(@PathVariable Long documentId, @RequestBody Map<String, Object> request) {
+        try {
+            Long userId = Long.valueOf(request.get("userId").toString());
+            String permissionStr = (String) request.get("permission");
+            DocumentPermission.Permission permission = DocumentPermission.Permission
+                    .valueOf(permissionStr.toUpperCase());
+
+            Document document = documentService.getDocumentById(documentId);
+            User user = userService.getUserById(userId);
+            User grantedBy = userService.getUserById(document.getOwnerId()); // Assuming owner grants
+
+            DocumentPermission documentPermission = documentPermissionService.grantPermission(document, user,
+                    permission, grantedBy);
+
+            // Send WebSocket notification
+            WebSocketController.DocumentShareMessage shareMessage = new WebSocketController.DocumentShareMessage();
+            shareMessage.setDocumentId(documentId);
+            shareMessage.setDocumentTitle(document.getTitle());
+            shareMessage.setSharedByUserId(document.getOwnerId());
+            shareMessage.setSharedByUserName("User"); // Replace with actual user name
+            shareMessage.setPermission(permissionStr);
+            messagingTemplate.convertAndSend("/topic/document/" + documentId + "/shares", shareMessage);
+
+            return ResponseEntity.ok(documentPermission);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Grant permission failed: " + e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/{documentId}/permissions/{userId}")
+    public ResponseEntity<?> revokePermission(@PathVariable Long documentId, @PathVariable Long userId) {
+        try {
+            User revokedBy = userService.getUserById(1L); // Assuming current user ID is 1L
+            documentPermissionService.revokeAllPermissionsForUser(documentId, userId, revokedBy);
+            return ResponseEntity.ok(Map.of("message", "Permission revoked"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Revoke permission failed: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{documentId}/permissions")
+    public ResponseEntity<?> getPermissions(@PathVariable Long documentId) {
+        try {
+            List<DocumentPermission> permissions = documentPermissionService.getPermissionsForDocument(documentId);
+            return ResponseEntity.ok(permissions);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Get permissions failed: " + e.getMessage()));
         }
     }
 
