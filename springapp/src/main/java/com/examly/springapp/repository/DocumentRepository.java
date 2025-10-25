@@ -28,6 +28,11 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     List<Document> findByDeletedAtIsNotNull();
 
+    @Query("SELECT d FROM Document d WHERE d.deletedAt IS NULL")
+    List<Document> findAllActiveDocuments();
+
+    List<Document> findByDeletedAtIsNull();
+
     Page<Document> findByDeletedAtIsNull(Pageable pageable);
 
     Page<Document> findByTitleContainingIgnoreCaseAndDeletedAtIsNull(String title, Pageable pageable);
@@ -57,4 +62,6 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     long getTotalStorage();
 
     List<Document> findByCreatedAtAfterAndDeletedAtIsNull(java.time.LocalDateTime date);
+
+    boolean existsByFileUrlContaining(String fileName);
 }

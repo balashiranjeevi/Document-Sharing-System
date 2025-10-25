@@ -34,6 +34,15 @@ function PublicRoute({ children }) {
   return user ? <Navigate to="/dashboard" /> : children;
 }
 
+function LandingRoute({ children }) {
+  const { user } = useAuth();
+  return user ? (
+    <Navigate to={user.role === "ADMIN" ? "/admin" : "/dashboard"} />
+  ) : (
+    children
+  );
+}
+
 function App() {
   return (
     <ErrorBoundary>
@@ -44,7 +53,14 @@ function App() {
           >
             <div className="App">
               <Routes>
-                <Route path="/" element={<Landing />} />
+                <Route
+                  path="/"
+                  element={
+                    <LandingRoute>
+                      <Landing />
+                    </LandingRoute>
+                  }
+                />
                 <Route path="/login" element={<Login />} />
                 <Route
                   path="/register"

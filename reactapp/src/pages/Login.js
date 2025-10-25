@@ -343,37 +343,6 @@ const Login = () => {
                 )}
               </button>
 
-              {/* Divider */}
-              <div className="relative flex items-center py-4">
-                <div className="flex-grow border-t border-gray-200"></div>
-                <span className="flex-shrink mx-4 text-gray-500 text-sm font-medium">
-                  OR CONTINUE WITH
-                </span>
-                <div className="flex-grow border-t border-gray-200"></div>
-              </div>
-
-              {/* SSO Options */}
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  className="flex items-center justify-center space-x-2 py-2.5 px-4 border border-gray-300 rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 group"
-                >
-                  <div className="w-5 h-5 bg-gradient-to-r from-red-500 to-yellow-500 rounded"></div>
-                  <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
-                    Google
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  className="flex items-center justify-center space-x-2 py-2.5 px-4 border border-gray-300 rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 group"
-                >
-                  <div className="w-5 h-5 bg-gradient-to-r from-blue-500 to-blue-700 rounded"></div>
-                  <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
-                    Microsoft
-                  </span>
-                </button>
-              </div>
-
               {/* Sign Up Link */}
               <div className="text-center pt-4 border-t border-gray-200">
                 <p className="text-sm text-gray-600">

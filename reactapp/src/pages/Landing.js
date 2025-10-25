@@ -24,6 +24,7 @@ const Landing = () => {
   const [isVisible, setIsVisible] = useState({});
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [email, setEmail] = useState("");
+  const [isSubscribing, setIsSubscribing] = useState(false);
   const [stats, setStats] = useState([
     { number: "10M+", label: "Files Secured" },
     { number: "50K+", label: "Active Users" },
@@ -99,15 +100,106 @@ const Landing = () => {
     { name: "Zoom", icon: "Z" },
   ];
 
-  const handleNewsletterSubmit = (e) => {
+  const handleNewsletterSubmit = async (e) => {
     e.preventDefault();
-    // Handle newsletter signup
+    setIsSubscribing(true);
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     console.log("Newsletter signup:", email);
     setEmail("");
+    setIsSubscribing(false);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 font-sans antialiased">
+      <style>
+        {`
+          .voltage-button {
+            position: relative;
+            display: inline-block;
+            overflow: hidden;
+          }
+          .voltage-button button {
+            position: relative;
+            z-index: 2;
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+          }
+          .voltage-button button:hover {
+            background: #1d4ed8;
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+          }
+          .voltage-button svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+          }
+          .voltage-button.active svg {
+            opacity: 1;
+          }
+          .voltage {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: voltage 2s linear infinite;
+            filter: url(#glow);
+          }
+          @keyframes voltage {
+            to {
+              stroke-dashoffset: 0;
+            }
+          }
+          .dots {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+          }
+          .voltage-button.active .dots {
+            opacity: 1;
+          }
+          .dot {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #fff;
+            border-radius: 50%;
+            animation: dot 1s ease-out infinite;
+          }
+          .dot-1 { animation-delay: 0s; }
+          .dot-2 { animation-delay: 0.1s; }
+          .dot-3 { animation-delay: 0.2s; }
+          .dot-4 { animation-delay: 0.3s; }
+          .dot-5 { animation-delay: 0.4s; }
+          @keyframes dot {
+            0% {
+              transform: scale(0);
+              opacity: 1;
+            }
+            50% {
+              transform: scale(1);
+              opacity: 0.5;
+            }
+            100% {
+              transform: scale(0);
+              opacity: 0;
+            }
+          }
+        `}
+      </style>
       {/* Enhanced Header */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm border-b border-gray-200">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
@@ -642,9 +734,10 @@ const Landing = () => {
               />
               <button
                 type="submit"
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300"
+                disabled={isSubscribing}
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 hover:scale-105 hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
-                Subscribe
+                {isSubscribing ? "Subscribing..." : "Subscribe"}
               </button>
             </form>
             <p className="text-gray-500 text-sm mt-4">

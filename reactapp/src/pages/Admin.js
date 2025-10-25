@@ -128,6 +128,36 @@ const Admin = () => {
     }
   };
 
+  const handleDeleteDocument = async (docId) => {
+    if (!window.confirm("Are you sure you want to delete this document?"))
+      return;
+
+    try {
+      await axios.delete(`admin/documents/${docId}`);
+      await fetchDocuments();
+      await fetchStats(); // Refresh stats after deletion
+    } catch (error) {
+      setError("Failed to delete document");
+    }
+  };
+
+  const handleDownloadDocument = async (docId, docName) => {
+    try {
+      const response = await axios.get(`admin/documents/${docId}/download`, {
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", docName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      setError("Failed to download document");
+    }
+  };
+
   const tabs = [
     { id: "overview", label: "Overview", icon: FiBarChart },
     { id: "users", label: "Users", icon: FiUsers },
@@ -712,10 +742,18 @@ const Admin = () => {
                                   ).toLocaleDateString()}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                  <button className="text-blue-600 hover:text-blue-700 mr-3">
+                                  <button
+                                    onClick={() =>
+                                      handleDownloadDocument(doc.id, doc.name)
+                                    }
+                                    className="text-blue-600 hover:text-blue-700 mr-3"
+                                  >
                                     <FiDownload size={16} />
                                   </button>
-                                  <button className="text-red-600 hover:text-red-700">
+                                  <button
+                                    onClick={() => handleDeleteDocument(doc.id)}
+                                    className="text-red-600 hover:text-red-700"
+                                  >
                                     <FiTrash2 size={16} />
                                   </button>
                                 </td>

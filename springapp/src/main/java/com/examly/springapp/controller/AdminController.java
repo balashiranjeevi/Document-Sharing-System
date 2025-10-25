@@ -30,6 +30,9 @@ public class AdminController {
     @Autowired
     private ActivityLogService activityLogService;
 
+    @Autowired
+    private com.examly.springapp.service.FileStorageService fileStorageService;
+
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getAdminStats() {
         Map<String, Object> stats = new HashMap<>();
@@ -79,7 +82,7 @@ public class AdminController {
     @GetMapping("/documents")
     public ResponseEntity<List<Map<String, Object>>> getAllDocuments() {
         try {
-            List<Document> documents = documentService.getAllDocuments();
+            List<Document> documents = documentService.getAllActiveDocuments();
             List<Map<String, Object>> documentList = documents.stream()
                     .map(doc -> {
                         Map<String, Object> docMap = new HashMap<>();
@@ -110,7 +113,8 @@ public class AdminController {
                         activityMap.put("id", activity.getId());
                         activityMap.put("type", mapActionToType(activity.getAction()));
                         activityMap.put("description", activity.getDetails());
-                        activityMap.put("timestamp", activity.getTimestamp() != null ? activity.getTimestamp().toString() : null);
+                        activityMap.put("timestamp",
+                                activity.getTimestamp() != null ? activity.getTimestamp().toString() : null);
                         return activityMap;
                     })
                     .collect(java.util.stream.Collectors.toList());
@@ -122,18 +126,79 @@ public class AdminController {
         }
     }
 
+    @DeleteMapping("/documents/{documentId}")
+    public ResponseEntity<Void> deleteDocument(@PathVariable Long documentId) {
+        try {
+            Document document = documentService.getDocumentById(documentId);
+
+            // Move to trash instead of permanent deletion for admin
+            documentService.moveToTrash(documentId);
+
+            // Log admin delete activity
+            activityLogService.logActivity(documentId, document.getOwnerId(), "DELETED",
+                    "Document deleted by admin: " + document.getFileName());
+
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            System.err.println("Error deleting document by admin: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
+    }
+
+    @GetMapping("/documents/{documentId}/download")
+    public ResponseEntity<org.springframework.core.io.Resource> downloadDocument(@PathVariable Long documentId) {
+        try {
+            Document document = documentService.getDocumentById(documentId);
+            if (document.getFileUrl() == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            java.nio.file.Path filePath = fileStorageService.getFilePath(document.getFileUrl());
+            org.springframework.core.io.Resource resource = new org.springframework.core.io.UrlResource(
+                    filePath.toUri());
+
+            if (resource.exists() && resource.isReadable()) {
+                // Log admin download activity
+                activityLogService.logActivity(documentId, document.getOwnerId(), "DOWNLOADED",
+                        "Document downloaded by admin: " + document.getFileName());
+
+                return ResponseEntity.ok()
+                        .header("Content-Disposition", "attachment; filename=\"" + document.getFileName() + "\"")
+                        .header("Content-Type", document.getFileType())
+                        .body(resource);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            System.err.println("Error downloading document by admin: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
+    }
+
     private String mapActionToType(String action) {
         switch (action) {
-            case "UPLOADED": return "upload";
-            case "VIEWED": return "view";
-            case "DOWNLOADED": return "download";
-            case "SHARED": return "share";
-            case "RENAMED": return "edit";
-            case "DELETED": return "delete";
-            case "RESTORED": return "restore";
-            case "SHARED_VIEW": return "share";
-            case "AUTO_DELETED": return "delete";
-            default: return "edit";
+            case "UPLOADED":
+                return "upload";
+            case "VIEWED":
+                return "view";
+            case "DOWNLOADED":
+                return "download";
+            case "SHARED":
+                return "share";
+            case "RENAMED":
+                return "edit";
+            case "DELETED":
+                return "delete";
+            case "RESTORED":
+                return "restore";
+            case "SHARED_VIEW":
+                return "share";
+            case "AUTO_DELETED":
+                return "delete";
+            default:
+                return "edit";
         }
     }
 }

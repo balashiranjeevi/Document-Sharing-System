@@ -11,6 +11,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.scheduling.annotation.Scheduled;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 @Service
 public class DocumentService {
@@ -247,6 +254,61 @@ public class DocumentService {
             System.err.println("Error getting all documents: " + e.getMessage());
             e.printStackTrace();
             return new java.util.ArrayList<>();
+        }
+    }
+
+    public List<Document> getAllActiveDocuments() {
+        try {
+            return documentRepository.findByDeletedAtIsNull();
+        } catch (Exception e) {
+            System.err.println("Error getting all active documents: " + e.getMessage());
+            e.printStackTrace();
+            return new java.util.ArrayList<>();
+        }
+    }
+
+    /**
+     * Scheduled task to clean up orphaned files in the document storage directory.
+     * Runs daily at 2 AM. Checks for files that exist in the storage directory
+     * but have no corresponding database records, and deletes them.
+     */
+    @Scheduled(cron = "0 0 2 * * ?") // Run daily at 2 AM
+    public void cleanupOrphanedFiles() {
+        try {
+            String storagePath = "DocumentStorage/";
+            Path storageDir = Paths.get(storagePath);
+
+            if (!Files.exists(storageDir) || !Files.isDirectory(storageDir)) {
+                System.out.println("Document storage directory does not exist: " + storagePath);
+                return;
+            }
+
+            // Get all files in the storage directory recursively
+            try (Stream<Path> paths = Files.walk(storageDir)) {
+                paths.filter(Files::isRegularFile)
+                        .forEach(filePath -> {
+                            try {
+                                String fileName = filePath.getFileName().toString();
+
+                                // Check if this file exists in the database
+                                boolean existsInDb = documentRepository.existsByFileUrlContaining(fileName);
+
+                                if (!existsInDb) {
+                                    // File exists in storage but not in database - delete it
+                                    Files.delete(filePath);
+                                    System.out.println("Deleted orphaned file: " + filePath.toString());
+                                }
+                            } catch (IOException e) {
+                                System.err.println("Error processing file " + filePath + ": " + e.getMessage());
+                            }
+                        });
+            }
+
+            System.out.println("Orphaned file cleanup completed successfully");
+
+        } catch (Exception e) {
+            System.err.println("Error during orphaned file cleanup: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }

@@ -179,13 +179,22 @@ const Dashboard = () => {
           break;
         case "home":
         default:
-          // Use getRecent directly since getAll has server issues
-          response = await documentService.getRecent();
-          setDocuments(response.data || []);
+          // Use getAll with pagination for home section to show all documents
+          response = await documentService.getAll({
+            page,
+            size,
+            sortBy,
+            sortDir,
+            search: searchTerm || undefined,
+          });
+          setDocuments(response.data.content || []);
           setPagination((prev) => ({
             ...prev,
-            totalElements: response.data?.length || 0,
-            totalPages: 1,
+            totalElements: response.data.totalElements || 0,
+            totalPages: response.data.totalPages || 0,
+            currentPage: response.data.currentPage || page,
+            hasNext: response.data.hasNext || false,
+            hasPrevious: response.data.hasPrevious || false,
           }));
           setError(null);
       }
@@ -201,9 +210,10 @@ const Dashboard = () => {
 
   const handleUploadSuccess = () => {
     setShowUpload(false);
+    // Immediately refresh documents and stats after upload
     fetchDocuments();
-    setRefreshTrigger((prev) => prev + 1);
     fetchStats();
+    setRefreshTrigger((prev) => prev + 1);
   };
 
   const handleFolderClick = (folderType) => {
