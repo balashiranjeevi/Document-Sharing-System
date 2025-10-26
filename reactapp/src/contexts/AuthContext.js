@@ -81,11 +81,29 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const searchUsers = async (query) => {
+    try {
+      const API_URL =
+        process.env.REACT_APP_API_BASE_URL || "http://localhost:8080/api";
+      const response = await axios.get(`${API_URL}/auth/users/search`, {
+        params: { q: query },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("User search error:", error);
+      throw new Error(error.response?.data?.message || "User search failed");
+    }
+  };
+
   const value = {
     user,
     login,
     register,
     logout,
+    searchUsers,
     loading,
     isAuthenticated: !!user,
   };

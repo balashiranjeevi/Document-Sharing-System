@@ -37,7 +37,7 @@
 ### 7. DTOs
 
 - [ ] Create `DocumentPermissionDTO`
-- [ ] Update existing DTOs if needed
+- [x] Update existing DTOs if needed
 
 ## Frontend Changes
 
@@ -48,13 +48,13 @@
 
 ### 9. Components
 
-- [ ] Update `ShareModal.js` for user selection and permissions
-- [ ] Create `UserSearchModal.js` for finding users to share with
+- [x] Update `ShareModal.js` for user selection and permissions
+- [x] Create `UserSearchModal.js` for finding users to share with
 - [ ] Update `DocumentList.js` to show permission badges
 
 ### 10. API Integration
 
-- [ ] Update `api.js` with new sharing endpoints
+- [x] Update `api.js` with new sharing endpoints
 - [ ] Add WebSocket client integration
 
 ### 11. Real-time Features
@@ -67,7 +67,7 @@
 
 - [x] Fix ActivityLogService method signatures to use Document and User objects instead of IDs
 - [x] Update all controllers to use the corrected logActivity method
-- [x] Test sharing with different permission levels
-- [x] Test real-time updates
-- [x] Test permission enforcement
-- [x] Test edge cases (removing permissions, etc.)
+- [ ] Test sharing with different permission levels
+- [ ] Test real-time updates
+- [ ] Test permission enforcement
+- [ ] Test edge cases (removing permissions, etc.)

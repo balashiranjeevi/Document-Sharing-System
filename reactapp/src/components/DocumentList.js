@@ -9,6 +9,9 @@ import {
   FiTrash2,
   FiMoreVertical,
   FiEye,
+  FiUsers,
+  FiEdit,
+  FiDownload as FiDownloadIcon,
 } from "react-icons/fi";
 import { documentService } from "../utils/api";
 import Notification from "./Notification";
@@ -196,8 +199,13 @@ const DocumentList = ({
             className="group relative bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
           >
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-3">
+              <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-3 relative">
                 <FileIcon className="text-blue-500" size={24} />
+                {doc.isShared && (
+                  <div className="absolute -top-1 -right-1 bg-green-500 text-white rounded-full p-1">
+                    <FiUsers size={8} />
+                  </div>
+                )}
               </div>
               <h3 className="text-sm font-medium text-gray-900 text-center truncate w-full">
                 {doc.title || doc.fileName}
@@ -208,6 +216,33 @@ const DocumentList = ({
               <p className="text-xs text-gray-400 mt-1">
                 {formatDate(doc.createdAt)}
               </p>
+              {doc.permissions && doc.permissions.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {doc.permissions.map((perm, index) => (
+                    <span
+                      key={index}
+                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                        perm.permission === "VIEW"
+                          ? "bg-blue-100 text-blue-800"
+                          : perm.permission === "EDIT"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-green-100 text-green-800"
+                      }`}
+                    >
+                      {perm.permission === "VIEW" && (
+                        <FiEye size={10} className="mr-1" />
+                      )}
+                      {perm.permission === "EDIT" && (
+                        <FiEdit size={10} className="mr-1" />
+                      )}
+                      {perm.permission === "DOWNLOAD" && (
+                        <FiDownloadIcon size={10} className="mr-1" />
+                      )}
+                      {perm.permission}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -363,12 +398,46 @@ const DocumentList = ({
             <div key={doc.id} className="px-6 py-4 hover:bg-gray-50 group">
               <div className="grid grid-cols-12 gap-4 items-center">
                 <div className="col-span-5 flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-blue-50 rounded flex items-center justify-center">
+                  <div className="w-8 h-8 bg-blue-50 rounded flex items-center justify-center relative">
                     <FileIcon className="text-blue-500" size={16} />
+                    {doc.isShared && (
+                      <div className="absolute -top-1 -right-1 bg-green-500 text-white rounded-full p-0.5">
+                        <FiUsers size={6} />
+                      </div>
+                    )}
                   </div>
-                  <span className="text-sm font-medium text-gray-900 truncate">
-                    {doc.title || doc.fileName}
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-gray-900 truncate">
+                      {doc.title || doc.fileName}
+                    </span>
+                    {doc.permissions && doc.permissions.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {doc.permissions.map((perm, index) => (
+                          <span
+                            key={index}
+                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                              perm.permission === "VIEW"
+                                ? "bg-blue-100 text-blue-800"
+                                : perm.permission === "EDIT"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-green-100 text-green-800"
+                            }`}
+                          >
+                            {perm.permission === "VIEW" && (
+                              <FiEye size={10} className="mr-1" />
+                            )}
+                            {perm.permission === "EDIT" && (
+                              <FiEdit size={10} className="mr-1" />
+                            )}
+                            {perm.permission === "DOWNLOAD" && (
+                              <FiDownloadIcon size={10} className="mr-1" />
+                            )}
+                            {perm.permission}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="col-span-2 text-sm text-gray-500">
                   {formatFileSize(doc.size)}
