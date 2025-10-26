@@ -410,6 +410,24 @@ public class DocumentController {
         }
     }
 
+    @PutMapping("/{documentId}/permissions/{userId}")
+    public ResponseEntity<?> updatePermission(@PathVariable Long documentId, @PathVariable Long userId,
+            @RequestBody Map<String, Object> request) {
+        try {
+            String permissionStr = (String) request.get("permission");
+            DocumentPermission.Permission permission = DocumentPermission.Permission
+                    .valueOf(permissionStr.toUpperCase());
+
+            User updatedBy = userService.getUserById(1L); // Assuming current user ID is 1L
+            DocumentPermission updated = documentPermissionService.updatePermission(documentId, userId, permission,
+                    updatedBy);
+
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Update permission failed: " + e.getMessage()));
+        }
+    }
+
     @PutMapping("/{id}/trash")
     public ResponseEntity<?> moveToTrash(@PathVariable Long id) {
         try {

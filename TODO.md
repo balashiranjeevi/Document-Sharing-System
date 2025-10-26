@@ -26,7 +26,7 @@
 ### 5. Controller Updates
 
 - [x] Update `DocumentController` with new sharing endpoints
-- [x] Add permission management endpoints
+- [x] Add permission management endpoints (including updatePermission)
 - [x] Update existing share endpoint
 
 ### 6. WebSocket Configuration

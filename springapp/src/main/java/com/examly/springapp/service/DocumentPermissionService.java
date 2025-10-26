@@ -118,4 +118,22 @@ public class DocumentPermissionService {
     public List<DocumentPermission> getSharedDocumentsForUser(Long userId) {
         return permissionRepository.findByUserId(userId);
     }
+
+    @Transactional
+    public DocumentPermission updatePermission(Long documentId, Long userId,
+            DocumentPermission.Permission newPermission, User updatedBy) {
+        List<DocumentPermission> permissions = permissionRepository.findByDocumentIdAndUserId(documentId, userId);
+        if (permissions.isEmpty()) {
+            throw new RuntimeException("No permission found for user on this document");
+        }
+        DocumentPermission perm = permissions.get(0); // Assuming one permission per user per document
+        perm.setPermission(newPermission);
+        DocumentPermission saved = permissionRepository.save(perm);
+
+        // Log activity
+        activityLogService.logActivity(perm.getDocument(), updatedBy, "UPDATE_SHARE",
+                "Updated permission to " + newPermission + " for user ID: " + userId);
+
+        return saved;
+    }
 }
