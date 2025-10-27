@@ -5,6 +5,11 @@ const API_BASE_URL =
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest'
+  }
 });
 
 api.interceptors.request.use(
@@ -38,8 +43,12 @@ export const authService = {
   login: (credentials) => api.post("/auth/login", credentials),
   register: (userData) => api.post("/auth/register", userData),
   logout: () => localStorage.removeItem("token"),
-  searchUsers: (query) =>
-    api.get("/auth/users/search", { params: { q: query } }),
+  searchUsers: (query) => {
+    if (!query || typeof query !== 'string' || query.trim().length === 0) {
+      return Promise.reject(new Error('Invalid search query'));
+    }
+    return api.get("/auth/users/search", { params: { q: query.trim() } });
+  },
 };
 
 export const documentService = {
@@ -49,10 +58,16 @@ export const documentService = {
   update: (id, data) => api.put(`/documents/${id}`, data),
   rename: (id, title) => api.patch(`/documents/${id}`, { title }),
   delete: (id) => api.delete(`/documents/${id}`),
-  search: (query, page = 0, size = 10, sortBy = "id", sortDir = "asc") =>
-    api.get("/documents", {
-      params: { search: query, page, size, sortBy, sortDir },
-    }),
+  search: (query, page = 0, size = 10, sortBy = "id", sortDir = "asc") => {
+    const validatedParams = {
+      search: query ? query.trim() : '',
+      page: Math.max(0, parseInt(page) || 0),
+      size: Math.min(100, Math.max(1, parseInt(size) || 10)),
+      sortBy: ['id', 'title', 'createdAt', 'updatedAt'].includes(sortBy) ? sortBy : 'id',
+      sortDir: ['asc', 'desc'].includes(sortDir) ? sortDir : 'asc'
+    };
+    return api.get("/documents", { params: validatedParams });
+  },
   getRecent: () => api.get("/documents/recent"),
   getShared: () => api.get("/documents/shared"),
   getTrash: () => api.get("/documents/trash"),

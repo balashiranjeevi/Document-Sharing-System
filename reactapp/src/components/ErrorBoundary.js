@@ -4,6 +4,11 @@ class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
     this.state = { hasError: false, error: null };
+    this.handleReload = this.handleReload.bind(this);
+  }
+  
+  handleReload() {
+    window.location.reload();
   }
 
   static getDerivedStateFromError(error) {
@@ -22,7 +27,7 @@ class ErrorBoundary extends React.Component {
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Something went wrong</h1>
             <p className="text-gray-600 mb-4">We're sorry, but something unexpected happened.</p>
             <button
-              onClick={() => window.location.reload()}
+              onClick={this.handleReload}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
               Reload Page

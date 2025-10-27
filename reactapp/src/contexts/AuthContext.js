@@ -1,5 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
+import DOMPurify from 'dompurify';
+
+// Input sanitization helper
+const sanitizeInput = (input) => {
+  if (typeof input === 'string') {
+    return DOMPurify.sanitize(input.trim());
+  }
+  return input;
+};
 
 // Set default base URL for axios
 axios.defaults.baseURL =
@@ -29,7 +38,14 @@ export const AuthProvider = ({ children }) => {
         const currentTime = Date.now() / 1000;
 
         if (payload.exp > currentTime) {
-          setUser(JSON.parse(savedUser));
+          const userData = JSON.parse(savedUser);
+          // Sanitize user data from localStorage
+          const sanitizedUser = {
+            ...userData,
+            name: sanitizeInput(userData.name),
+            email: sanitizeInput(userData.email)
+          };
+          setUser(sanitizedUser);
         } else {
           localStorage.removeItem("token");
           localStorage.removeItem("user");
@@ -53,9 +69,16 @@ export const AuthProvider = ({ children }) => {
         throw new Error("Invalid response from server");
       }
 
+      // Sanitize user data before storing
+      const sanitizedUser = {
+        ...user,
+        name: sanitizeInput(user.name),
+        email: sanitizeInput(user.email)
+      };
+      
       localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      setUser(user);
+      localStorage.setItem("user", JSON.stringify(sanitizedUser));
+      setUser(sanitizedUser);
       return response.data;
     } catch (error) {
       console.error("Login error:", error);
@@ -83,10 +106,20 @@ export const AuthProvider = ({ children }) => {
 
   const searchUsers = async (query) => {
     try {
+      // Validate and sanitize search query
+      if (!query || typeof query !== 'string' || query.trim().length === 0) {
+        throw new Error('Invalid search query');
+      }
+      
+      const sanitizedQuery = sanitizeInput(query);
+      if (sanitizedQuery.length > 100) {
+        throw new Error('Search query too long');
+      }
+      
       const API_URL =
         process.env.REACT_APP_API_BASE_URL || "http://localhost:8080/api";
       const response = await axios.get(`${API_URL}/auth/users/search`, {
-        params: { q: query },
+        params: { q: sanitizedQuery },
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
