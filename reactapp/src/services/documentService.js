@@ -21,17 +21,26 @@ export const documentService = {
   },
 
   update: async (id, data) => {
-    const response = await api.put(`/documents/${id}`, data);
+    if (!id || (typeof id !== 'string' && typeof id !== 'number')) {
+      throw new Error('Invalid document ID');
+    }
+    const response = await api.put(`/documents/${encodeURIComponent(id)}`, data);
     return response.data;
   },
 
   delete: async (id) => {
-    const response = await api.delete(`/documents/${id}`);
+    if (!id || (typeof id !== 'string' && typeof id !== 'number')) {
+      throw new Error('Invalid document ID');
+    }
+    const response = await api.delete(`/documents/${encodeURIComponent(id)}`);
     return response.data;
   },
 
   download: async (id) => {
-    const response = await api.get(`/documents/${id}/download`, {
+    if (!id || (typeof id !== 'string' && typeof id !== 'number')) {
+      throw new Error('Invalid document ID');
+    }
+    const response = await api.get(`/documents/${encodeURIComponent(id)}/download`, {
       responseType: 'blob',
     });
     return response.data;

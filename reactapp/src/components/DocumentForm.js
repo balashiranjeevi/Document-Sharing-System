@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+
+// Configure axios for CSRF protection
+axios.defaults.withCredentials = true;
+axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 import { sanitizeInput } from '../utils/validation';
 import LoadingSpinner from './LoadingSpinner';
 
@@ -52,9 +56,13 @@ const DocumentForm = ({ document, onSave, onCancel }) => {
     try {
       let result;
       if (document?.id) {
-        result = await axios.put(`/documents/${document.id}`, formData);
+        result = await axios.put(`/documents/${document.id}`, formData, {
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
       } else {
-        result = await axios.post('/documents', formData);
+        result = await axios.post('/documents', formData, {
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
       }
       onSave?.(result.data);
     } catch (error) {
