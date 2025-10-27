@@ -10,6 +10,7 @@ import {
   FiDownload,
   FiUserPlus,
   FiUsers,
+  FiUser,
   FiSettings,
 } from "react-icons/fi";
 import UserSearchModal from "./UserSearchModal";

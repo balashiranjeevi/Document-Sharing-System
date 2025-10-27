@@ -32,6 +32,32 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .headers(headers -> headers
+                    .frameOptions(frameOptions -> frameOptions.deny())
+                    .contentTypeOptions(contentTypeOptions -> contentTypeOptions.and())
+                    .httpStrictTransportSecurity(hsts -> hsts
+                        .maxAgeInSeconds(31536000)
+                        .includeSubDomains(true)
+                        .preload(true)
+                    )
+                    .referrerPolicy(referrerPolicy -> 
+                        referrerPolicy.policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
+                    )
+                    .addHeaderWriter((request, response) -> {
+                        response.setHeader("X-Content-Type-Options", "nosniff");
+                        response.setHeader("X-Frame-Options", "DENY");
+                        response.setHeader("X-XSS-Protection", "1; mode=block");
+                        response.setHeader("Content-Security-Policy", 
+                            "default-src 'self'; " +
+                            "script-src 'self' 'unsafe-inline'; " +
+                            "style-src 'self' 'unsafe-inline'; " +
+                            "img-src 'self' data: https:; " +
+                            "font-src 'self'; " +
+                            "connect-src 'self'; " +
+                            "frame-ancestors 'none';"
+                        );
+                    })
+                )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll())
