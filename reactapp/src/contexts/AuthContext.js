@@ -62,7 +62,12 @@ export const AuthProvider = ({ children }) => {
     try {
       const API_URL =
         process.env.REACT_APP_API_BASE_URL || "http://localhost:8080/api";
-      const response = await axios.post(`${API_URL}/auth/login`, credentials);
+      const response = await axios.post(`${API_URL}/auth/login`, credentials, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        withCredentials: true
+      });
       const { token, user } = response.data;
 
       if (!token || !user) {

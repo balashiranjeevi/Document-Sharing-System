@@ -62,24 +62,37 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequest) {
-        if (loginRequest.getEmail() == null || loginRequest.getPassword() == null) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Email and password are required"));
+        try {
+            System.out.println("Login attempt for email: " + loginRequest.getEmail());
+            
+            if (loginRequest.getEmail() == null || loginRequest.getPassword() == null) {
+                System.out.println("Missing email or password");
+                return ResponseEntity.badRequest().body(Map.of("message", "Email and password are required"));
+            }
+
+            java.util.Optional<User> userOpt = userRepository.findByEmail(loginRequest.getEmail());
+
+            if (userOpt.isEmpty()) {
+                System.out.println("User not found: " + loginRequest.getEmail());
+                return ResponseEntity.badRequest().body(Map.of("message", "Invalid credentials"));
+            }
+
+            User user = userOpt.get();
+            if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPasswordHash())) {
+                System.out.println("Password mismatch for user: " + loginRequest.getEmail());
+                return ResponseEntity.badRequest().body(Map.of("message", "Invalid credentials"));
+            }
+
+            String token = jwtUtil.generateToken(user.getEmail());
+            System.out.println("Login successful for user: " + loginRequest.getEmail());
+
+            return ResponseEntity.ok(new LoginResponseDTO(token, user));
+        } catch (Exception e) {
+            System.err.println("Login error: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Login failed: " + e.getMessage()));
         }
-
-        java.util.Optional<User> userOpt = userRepository.findByEmail(loginRequest.getEmail());
-
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Invalid credentials"));
-        }
-
-        User user = userOpt.get();
-        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPasswordHash())) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Invalid credentials"));
-        }
-
-        String token = jwtUtil.generateToken(user.getEmail());
-
-        return ResponseEntity.ok(new LoginResponseDTO(token, user));
     }
 
     @GetMapping("/users/search")

@@ -1,8 +1,7 @@
 const axios = require("axios");
 
-// Configure axios for CSRF protection
+// Configure axios
 axios.defaults.withCredentials = true;
-axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/api";
 const DEFAULT_PASSWORD = process.env.DEFAULT_USER_PASSWORD || "TempPass123!";
@@ -15,8 +14,7 @@ async function createUser(name, email, password = DEFAULT_PASSWORD) {
       password,
     }, {
       headers: {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
+        'Content-Type': 'application/json'
       },
       withCredentials: true
     });
