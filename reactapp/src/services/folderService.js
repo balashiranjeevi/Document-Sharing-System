@@ -17,7 +17,10 @@ export const folderService = {
   },
 
   update: async (id, folderData) => {
-    const response = await api.put(`/folders/${id}`, folderData);
+    if (!id || (typeof id !== 'string' && typeof id !== 'number')) {
+      throw new Error('Invalid folder ID');
+    }
+    const response = await api.put(`/folders/${encodeURIComponent(id)}`, folderData);
     return response.data;
   },
 

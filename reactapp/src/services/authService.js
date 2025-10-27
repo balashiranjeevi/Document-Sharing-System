@@ -1,11 +1,26 @@
 import api from '../utils/api';
+import DOMPurify from 'dompurify';
+
+// Input sanitization helper
+const sanitizeInput = (input) => {
+  if (typeof input === 'string') {
+    return DOMPurify.sanitize(input.trim());
+  }
+  return input;
+};
 
 export const authService = {
   login: async (credentials) => {
     const response = await api.post('/auth/login', credentials);
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      // Sanitize user data before storing
+      const sanitizedUser = {
+        ...response.data.user,
+        name: sanitizeInput(response.data.user.name),
+        email: sanitizeInput(response.data.user.email)
+      };
+      localStorage.setItem('user', JSON.stringify(sanitizedUser));
     }
     return response.data;
   },

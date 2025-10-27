@@ -5,6 +5,10 @@ import Header from "../components/Header";
 import LoadingSpinner from "../components/LoadingSpinner";
 import axios from "axios";
 
+// Configure axios for CSRF protection
+axios.defaults.withCredentials = true;
+axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+
 const EditUser = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -90,7 +94,9 @@ const EditUser = () => {
         updateData.password = formData.password;
       }
 
-      await axios.put(`admin/users/${id}`, updateData);
+      await axios.put(`admin/users/${id}`, updateData, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
 
       // Navigate back to admin page with success message
       navigate("/admin", {

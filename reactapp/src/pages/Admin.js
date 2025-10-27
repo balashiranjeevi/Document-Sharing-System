@@ -23,6 +23,19 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import AdminChart from "../components/AdminChart";
 import ActivityLog from "../components/ActivityLog";
 import axios from "axios";
+import DOMPurify from 'dompurify';
+
+// Configure axios for CSRF protection
+axios.defaults.withCredentials = true;
+axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+
+// Input sanitization helper
+const sanitizeInput = (input) => {
+  if (typeof input === 'string') {
+    return DOMPurify.sanitize(input.trim());
+  }
+  return input;
+};
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -413,7 +426,7 @@ const Admin = () => {
                   type="text"
                   placeholder="Search users..."
                   value={userSearch}
-                  onChange={(e) => setUserSearch(e.target.value)}
+                  onChange={(e) => setUserSearch(sanitizeInput(e.target.value))}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                   className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                 />

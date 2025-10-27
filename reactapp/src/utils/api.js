@@ -3,6 +3,20 @@ import axios from "axios";
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:8080/api";
 
+// URL validation helper
+const validateUrl = (url) => {
+  const allowedHosts = ['localhost', '127.0.0.1'];
+  try {
+    const urlObj = new URL(url, API_BASE_URL);
+    if (process.env.NODE_ENV === 'production') {
+      return urlObj.origin === new URL(API_BASE_URL).origin;
+    }
+    return allowedHosts.some(host => urlObj.hostname === host) || urlObj.origin === new URL(API_BASE_URL).origin;
+  } catch {
+    return false;
+  }
+};
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
@@ -74,9 +88,18 @@ export const documentService = {
   getStats: () => api.get("/documents/stats"),
   share: (id) => api.put(`/documents/${id}/share`),
   moveToTrash: (id) => api.put(`/documents/${id}/trash`),
-  download: (id) =>
-    api.get(`/documents/${id}/download`, { responseType: "blob" }),
-  view: (id) => api.get(`/documents/${id}/view`, { responseType: "blob" }),
+  download: (id) => {
+    if (!id || typeof id !== 'string' && typeof id !== 'number') {
+      return Promise.reject(new Error('Invalid document ID'));
+    }
+    return api.get(`/documents/${encodeURIComponent(id)}/download`, { responseType: "blob" });
+  },
+  view: (id) => {
+    if (!id || typeof id !== 'string' && typeof id !== 'number') {
+      return Promise.reject(new Error('Invalid document ID'));
+    }
+    return api.get(`/documents/${encodeURIComponent(id)}/view`, { responseType: "blob" });
+  },
   permanentDelete: (id) => api.delete(`/documents/${id}/permanent`),
   restore: (id) => api.put(`/documents/${id}/restore`),
   getActivities: () => api.get("/documents/activities"),
