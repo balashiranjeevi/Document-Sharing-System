@@ -17,6 +17,7 @@ import {
   FiHardDrive,
   FiZap,
   FiFilter,
+  FiShare,
 } from "react-icons/fi";
 import Header from "../components/Header";
 import LoadingSpinner from "../components/LoadingSpinner";
@@ -291,18 +292,53 @@ const Admin = () => {
 
   const handleDownloadDocument = async (docId, docName) => {
     try {
-      const response = await axios.get(`admin/documents/${docId}/download`, {
-        responseType: "blob",
-      });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", docName);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      // Get document info to access S3 URL directly
+      const response = await axios.get(`admin/documents`);
+      const document = response.data.find(doc => doc.id === docId);
+      
+      if (document && document.s3Url) {
+        // Open S3 URL directly in new tab for download
+        window.open(document.s3Url, '_blank');
+      } else {
+        setError("Document URL not available");
+      }
     } catch (error) {
       setError("Failed to download document");
+    }
+  };
+
+  const handleViewDocument = async (docId) => {
+    try {
+      // Get document info to access S3 URL directly
+      const response = await axios.get(`admin/documents`);
+      const document = response.data.find(doc => doc.id === docId);
+      
+      if (document && document.s3Url) {
+        // Open S3 URL directly in new tab for viewing
+        window.open(document.s3Url, '_blank');
+      } else {
+        setError("Document URL not available");
+      }
+    } catch (error) {
+      setError("Failed to view document");
+    }
+  };
+
+  const handleShareDocument = async (docId) => {
+    try {
+      // Get document info to access S3 URL directly
+      const response = await axios.get(`admin/documents`);
+      const document = response.data.find(doc => doc.id === docId);
+      
+      if (document && document.s3Url) {
+        // Copy S3 URL to clipboard
+        await navigator.clipboard.writeText(document.s3Url);
+        alert('Direct S3 URL copied to clipboard!');
+      } else {
+        setError("Document URL not available");
+      }
+    } catch (error) {
+      setError("Failed to get share URL");
     }
   };
 
@@ -1057,20 +1093,36 @@ const Admin = () => {
                                   ).toLocaleDateString()}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                  <button
-                                    onClick={() =>
-                                      handleDownloadDocument(doc.id, doc.name)
-                                    }
-                                    className="text-blue-600 hover:text-blue-700 mr-3"
-                                  >
-                                    <FiDownload size={16} />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteDocument(doc.id)}
-                                    className="text-red-600 hover:text-red-700"
-                                  >
-                                    <FiTrash2 size={16} />
-                                  </button>
+                                  <div className="flex items-center space-x-2">
+                                    <button
+                                      onClick={() => handleViewDocument(doc.id)}
+                                      className="text-green-600 hover:text-green-700"
+                                      title="View Document"
+                                    >
+                                      <FiEye size={16} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDownloadDocument(doc.id, doc.name)}
+                                      className="text-blue-600 hover:text-blue-700"
+                                      title="Download Document"
+                                    >
+                                      <FiDownload size={16} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleShareDocument(doc.id)}
+                                      className="text-purple-600 hover:text-purple-700"
+                                      title="Copy S3 URL"
+                                    >
+                                      <FiShare size={16} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteDocument(doc.id)}
+                                      className="text-red-600 hover:text-red-700"
+                                      title="Delete Document"
+                                    >
+                                      <FiTrash2 size={16} />
+                                    </button>
+                                  </div>
                                 </td>
                               </tr>
                             ))}

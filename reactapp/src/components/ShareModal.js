@@ -24,10 +24,39 @@ const ShareModal = ({ document, shareUrl, onClose }) => {
   const [permissions, setPermissions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [sharing, setSharing] = useState(false);
+  const [actualShareUrl, setActualShareUrl] = useState(shareUrl);
+
+  const updateShareSettings = async (level) => {
+    try {
+      setSharing(true);
+      console.log('Sharing with access level:', level);
+      const response = await documentService.share(document.id, { accessLevel: level });
+      
+      // Prefer direct S3 URL over server URL for better performance
+      const newShareUrl = response.data.directUrl || response.data.s3Url || response.data.shareUrl || actualShareUrl;
+      setActualShareUrl(newShareUrl);
+      console.log('Share URL updated:', newShareUrl);
+      console.log('Available URLs:', {
+        directUrl: response.data.directUrl,
+        s3Url: response.data.s3Url,
+        shareUrl: response.data.shareUrl
+      });
+    } catch (error) {
+      console.error("Error updating share settings:", error);
+    } finally {
+      setSharing(false);
+    }
+  };
+
+  // Initial share when modal opens
+  React.useEffect(() => {
+    updateShareSettings(accessLevel);
+  }, []);
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      await navigator.clipboard.writeText(actualShareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
@@ -37,7 +66,7 @@ const ShareModal = ({ document, shareUrl, onClose }) => {
 
   const handleEmailShare = () => {
     const subject = `Shared Document: ${document.title}`;
-    const body = `I've shared a document with you: ${document.title}\n\nView it here: ${shareUrl}`;
+    const body = `I've shared a document with you: ${document.title}\n\nView it here: ${actualShareUrl}`;
     window.open(
       `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
         body
@@ -50,12 +79,12 @@ const ShareModal = ({ document, shareUrl, onClose }) => {
     const urls = {
       twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(
         text
-      )}&url=${encodeURIComponent(shareUrl)}`,
+      )}&url=${encodeURIComponent(actualShareUrl)}`,
       whatsapp: `https://wa.me/?text=${encodeURIComponent(
-        text + " " + shareUrl
+        text + " " + actualShareUrl
       )}`,
       telegram: `https://t.me/share/url?url=${encodeURIComponent(
-        shareUrl
+        actualShareUrl
       )}&text=${encodeURIComponent(text)}`,
     };
     window.open(urls[platform], "_blank");
@@ -169,7 +198,10 @@ const ShareModal = ({ document, shareUrl, onClose }) => {
                 </label>
                 <div className="flex space-x-3">
                   <button
-                    onClick={() => setAccessLevel("view")}
+                    onClick={async () => {
+                      setAccessLevel("view");
+                      await updateShareSettings("view");
+                    }}
                     className={`flex items-center space-x-2 px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
                       accessLevel === "view"
                         ? "bg-blue-50 border-blue-200 text-blue-700"
@@ -180,7 +212,10 @@ const ShareModal = ({ document, shareUrl, onClose }) => {
                     <span>View Only</span>
                   </button>
                   <button
-                    onClick={() => setAccessLevel("download")}
+                    onClick={async () => {
+                      setAccessLevel("download");
+                      await updateShareSettings("download");
+                    }}
                     className={`flex items-center space-x-2 px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
                       accessLevel === "download"
                         ? "bg-blue-50 border-blue-200 text-blue-700"
@@ -201,7 +236,7 @@ const ShareModal = ({ document, shareUrl, onClose }) => {
                 <div className="flex">
                   <input
                     type="text"
-                    value={shareUrl}
+                    value={actualShareUrl}
                     readOnly
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg bg-gray-50 text-sm"
                   />
@@ -265,7 +300,7 @@ const ShareModal = ({ document, shareUrl, onClose }) => {
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <p className="text-sm text-blue-800">
-                  🔒 Anyone with this link can{" "}
+                  🔗 This is a direct cloud link. Anyone with this link can{" "}
                   {accessLevel === "view" ? "view" : "view and download"} the
                   document. Share responsibly.
                 </p>

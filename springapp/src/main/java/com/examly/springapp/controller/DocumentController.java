@@ -49,6 +49,9 @@ public class DocumentController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private com.examly.springapp.service.S3StorageService s3StorageService;
+
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAllDocuments(
             @RequestParam(defaultValue = "0") int page,
@@ -73,6 +76,12 @@ public class DocumentController {
                                 doc.getVisibility() != null ? doc.getVisibility().toString() : "PRIVATE");
                         docMap.put("createdAt", doc.getCreatedAt() != null ? doc.getCreatedAt().toString() : null);
                         docMap.put("updatedAt", doc.getUpdatedAt() != null ? doc.getUpdatedAt().toString() : null);
+                        // Add S3 URL for direct access
+                        if (doc.getFileUrl() != null) {
+                            String s3Url = fileStorageService.getDirectUrl(doc.getFileUrl());
+                            docMap.put("directUrl", s3Url);
+                            docMap.put("s3Url", s3Url);
+                        }
                         return docMap;
                     })
                     .collect(Collectors.toList());
@@ -183,26 +192,19 @@ public class DocumentController {
     }
 
     @GetMapping("/{id}/download")
-    public ResponseEntity<org.springframework.core.io.Resource> downloadDocument(@PathVariable Long id) {
+    public ResponseEntity<?> downloadDocument(@PathVariable Long id) {
         try {
             Document document = documentService.getDocumentById(id);
             if (document.getFileUrl() == null) {
                 return ResponseEntity.notFound().build();
             }
 
-            java.nio.file.Path filePath = fileStorageService.getFilePath(document.getFileUrl());
-            org.springframework.core.io.Resource resource = new org.springframework.core.io.UrlResource(
-                    filePath.toUri());
-
-            if (resource.exists() && resource.isReadable()) {
-
-                return ResponseEntity.ok()
-                        .header("Content-Disposition", "attachment; filename=\"" + document.getFileName() + "\"")
-                        .header("Content-Type", document.getFileType())
-                        .body(resource);
-            } else {
-                return ResponseEntity.notFound().build();
-            }
+            // Return direct S3 URL in JSON response
+            String s3Url = fileStorageService.getDirectUrl(document.getFileUrl());
+            Map<String, String> response = new java.util.HashMap<>();
+            response.put("downloadUrl", s3Url);
+            response.put("fileName", document.getFileName());
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(500).build();
         }
@@ -264,6 +266,12 @@ public class DocumentController {
                                 doc.getVisibility() != null ? doc.getVisibility().toString() : "PRIVATE");
                         docMap.put("createdAt", doc.getCreatedAt() != null ? doc.getCreatedAt().toString() : null);
                         docMap.put("updatedAt", doc.getUpdatedAt() != null ? doc.getUpdatedAt().toString() : null);
+                        // Add S3 URL for direct access
+                        if (doc.getFileUrl() != null) {
+                            String s3Url = fileStorageService.getDirectUrl(doc.getFileUrl());
+                            docMap.put("directUrl", s3Url);
+                            docMap.put("s3Url", s3Url);
+                        }
                         return docMap;
                     })
                     .collect(Collectors.toList());
@@ -314,13 +322,26 @@ public class DocumentController {
     }
 
     @PutMapping("/{id}/share")
-    public ResponseEntity<?> shareDocument(@PathVariable Long id, jakarta.servlet.http.HttpServletRequest request) {
+    public ResponseEntity<?> shareDocument(@PathVariable Long id, @RequestBody(required = false) Map<String, Object> shareRequest, jakarta.servlet.http.HttpServletRequest request) {
         try {
             System.out.println("Sharing document with ID: " + id);
             Document document = documentService.getDocumentById(id);
             System.out.println("Document found: " + document.getTitle());
 
             document.setVisibility(Document.Visibility.PUBLIC);
+            
+            // Set access level from request
+            String accessLevel = "view";
+            if (shareRequest != null && shareRequest.containsKey("accessLevel")) {
+                accessLevel = (String) shareRequest.get("accessLevel");
+            }
+            
+            if ("download".equals(accessLevel)) {
+                document.setShareAccessLevel(Document.ShareAccessLevel.VIEW_AND_DOWNLOAD);
+            } else {
+                document.setShareAccessLevel(Document.ShareAccessLevel.VIEW_ONLY);
+            }
+            
             Document updated = documentService.updateDocument(id, document);
             System.out.println("Document updated to PUBLIC visibility");
 
@@ -338,17 +359,27 @@ public class DocumentController {
             shareMessage.setPermission("VIEW");
             messagingTemplate.convertAndSend("/topic/document/" + id + "/shares", shareMessage);
 
-            // Generate proper share URL
+            // Generate both server URL and direct S3 URL
             String baseUrl = request.getScheme() + "://" + request.getServerName();
             if (request.getServerPort() != 80 && request.getServerPort() != 443) {
                 baseUrl += ":" + request.getServerPort();
             }
-            String shareUrl = baseUrl + "/api/documents/shared/" + id;
-            System.out.println("Generated share URL: " + shareUrl);
+            String serverShareUrl = baseUrl + "/api/documents/shared/" + id;
+            
+            // Generate direct S3 URL for immediate access
+            String directS3Url = "";
+            if (document.getFileUrl() != null) {
+                directS3Url = s3StorageService.generatePublicUrl(document.getFileUrl());
+            }
+            
+            System.out.println("Generated server share URL: " + serverShareUrl);
+            System.out.println("Generated direct S3 URL: " + directS3Url);
 
             Map<String, Object> response = new java.util.HashMap<>();
             response.put("document", new DocumentResponseDTO(updated));
-            response.put("shareUrl", shareUrl);
+            response.put("shareUrl", serverShareUrl);
+            response.put("directUrl", directS3Url);
+            response.put("s3Url", directS3Url);
 
             System.out.println("Returning response: " + response);
             return ResponseEntity.ok(response);
@@ -450,25 +481,19 @@ public class DocumentController {
     }
 
     @GetMapping("/{id}/view")
-    public ResponseEntity<org.springframework.core.io.Resource> viewDocument(@PathVariable Long id) {
+    public ResponseEntity<?> viewDocument(@PathVariable Long id) {
         try {
             Document document = documentService.getDocumentById(id);
             if (document.getFileUrl() == null) {
                 return ResponseEntity.notFound().build();
             }
 
-            java.nio.file.Path filePath = fileStorageService.getFilePath(document.getFileUrl());
-            org.springframework.core.io.Resource resource = new org.springframework.core.io.UrlResource(
-                    filePath.toUri());
-
-            if (resource.exists() && resource.isReadable()) {
-
-                return ResponseEntity.ok()
-                        .header("Content-Type", document.getFileType())
-                        .body(resource);
-            } else {
-                return ResponseEntity.notFound().build();
-            }
+            // Return direct S3 URL in JSON response
+            String s3Url = fileStorageService.getDirectUrl(document.getFileUrl());
+            Map<String, String> response = new java.util.HashMap<>();
+            response.put("viewUrl", s3Url);
+            response.put("fileName", document.getFileName());
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(500).build();
         }
@@ -539,41 +564,141 @@ public class DocumentController {
     }
 
     @GetMapping("/shared/{id}")
-    public ResponseEntity<org.springframework.core.io.Resource> getSharedDocument(@PathVariable Long id) {
+    @CrossOrigin(origins = "*")
+    public ResponseEntity<String> getSharedDocumentPage(@PathVariable Long id, jakarta.servlet.http.HttpServletRequest request) {
         try {
-            System.out.println("Accessing shared document with ID: " + id);
             Document document = documentService.getDocumentById(id);
-            System.out.println("Document visibility: " + document.getVisibility());
-
+            
             // Check if document is public
             if (document.getVisibility() != Document.Visibility.PUBLIC) {
-                System.out.println("Document is not public, returning 404");
+                return ResponseEntity.notFound().build();
+            }
+
+            // Read HTML template
+            String template = new String(getClass().getResourceAsStream("/templates/shared-document.html").readAllBytes());
+            
+            // Get file icon based on type
+            String fileIcon = getFileIcon(document.getFileType());
+            
+            // Format file size
+            String fileSize = formatFileSize(document.getSize());
+            
+            // Generate direct S3 cloud URLs
+            String viewUrl = "";
+            String downloadUrl = "";
+            
+            if (document.getFileUrl() != null) {
+                // Generate direct S3 URL for viewing (always allowed)
+                viewUrl = s3StorageService.generatePublicUrl(document.getFileUrl());
+                
+                // Generate download URL only if access level allows it
+                if (document.getShareAccessLevel() == Document.ShareAccessLevel.VIEW_AND_DOWNLOAD) {
+                    downloadUrl = s3StorageService.generatePublicUrl(document.getFileUrl());
+                }
+            }
+            
+            // Create download button based on access level
+            String downloadButton;
+            boolean allowDownload = (document.getShareAccessLevel() == Document.ShareAccessLevel.VIEW_AND_DOWNLOAD);
+            
+            if (allowDownload && !downloadUrl.isEmpty()) {
+                downloadButton = "<a href=\"" + downloadUrl + "\" download=\"" + document.getFileName() + "\" class=\"flex items-center space-x-2 bg-white text-gray-700 px-6 py-3 rounded-xl font-semibold border border-gray-300 hover:bg-gray-50 transition-colors text-decoration-none\">" +
+                               "<i class=\"fas fa-download\"></i><span>Download</span></a>";
+            } else {
+                downloadButton = "<div class=\"text-sm text-gray-500 bg-gray-100 px-4 py-3 rounded-xl\">" +
+                               "<i class=\"fas fa-lock mr-2\"></i>Download not available - View only access</div>";
+            }
+            
+            // Replace placeholders
+            String html = template
+                .replace("{documentTitle}", document.getTitle())
+                .replace("{fileName}", document.getFileName())
+                .replace("{fileType}", document.getFileType())
+                .replace("{fileSize}", fileSize)
+                .replace("{fileIcon}", fileIcon)
+                .replace("{viewUrl}", viewUrl)
+                .replace("{downloadUrl}", downloadUrl)
+                .replace("{downloadButton}", downloadButton)
+                .replace("{sharedDate}", java.time.LocalDate.now().toString());
+            
+            return ResponseEntity.ok()
+                .header("Content-Type", "text/html")
+                .body(html);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    private String getFileIcon(String fileType) {
+        if (fileType == null) return "fas fa-file";
+        if (fileType.contains("image")) return "fas fa-image";
+        if (fileType.contains("pdf")) return "fas fa-file-pdf";
+        if (fileType.contains("word")) return "fas fa-file-word";
+        if (fileType.contains("excel")) return "fas fa-file-excel";
+        if (fileType.contains("powerpoint")) return "fas fa-file-powerpoint";
+        if (fileType.contains("video")) return "fas fa-file-video";
+        if (fileType.contains("audio")) return "fas fa-file-audio";
+        return "fas fa-file";
+    }
+    
+    private String formatFileSize(Long bytes) {
+        if (bytes == null || bytes == 0) return "0 B";
+        int k = 1024;
+        String[] sizes = {"B", "KB", "MB", "GB"};
+        int i = (int) Math.floor(Math.log(bytes) / Math.log(k));
+        return String.format("%.2f %s", bytes / Math.pow(k, i), sizes[i]);
+    }
+
+    @GetMapping("/shared/{id}/view")
+    @CrossOrigin(origins = "*")
+    public ResponseEntity<?> viewSharedDocument(@PathVariable Long id) {
+        try {
+            Document document = documentService.getDocumentById(id);
+            
+            // Check if document is public
+            if (document.getVisibility() != Document.Visibility.PUBLIC) {
                 return ResponseEntity.notFound().build();
             }
 
             if (document.getFileUrl() == null) {
-                System.out.println("Document file URL is null, returning 404");
                 return ResponseEntity.notFound().build();
             }
 
-            java.nio.file.Path filePath = fileStorageService.getFilePath(document.getFileUrl());
-            org.springframework.core.io.Resource resource = new org.springframework.core.io.UrlResource(
-                    filePath.toUri());
-
-            if (resource.exists() && resource.isReadable()) {
-                System.out.println("Serving shared document: " + document.getFileName());
-
-                return ResponseEntity.ok()
-                        .header("Content-Type", document.getFileType())
-                        .header("Content-Disposition", "inline; filename=\"" + document.getFileName() + "\"")
-                        .body(resource);
-            } else {
-                System.out.println("File does not exist or is not readable");
-                return ResponseEntity.notFound().build();
-            }
+            // Redirect to direct S3 URL
+            String s3Url = fileStorageService.getDirectUrl(document.getFileUrl());
+            return ResponseEntity.status(302)
+                    .header("Location", s3Url)
+                    .build();
         } catch (Exception e) {
-            System.err.println("Error accessing shared document: " + e.getMessage());
-            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
+    }
+
+    @GetMapping("/shared/{id}/download")
+    @CrossOrigin(origins = "*")
+    public ResponseEntity<?> downloadSharedDocument(@PathVariable Long id) {
+        try {
+            Document document = documentService.getDocumentById(id);
+            
+            // Check if document is public and allows download
+            if (document.getVisibility() != Document.Visibility.PUBLIC) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            if (document.getShareAccessLevel() == null || document.getShareAccessLevel() != Document.ShareAccessLevel.VIEW_AND_DOWNLOAD) {
+                return ResponseEntity.status(403).build(); // Forbidden
+            }
+
+            if (document.getFileUrl() == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // Redirect to direct S3 URL
+            String s3Url = fileStorageService.getDirectUrl(document.getFileUrl());
+            return ResponseEntity.status(302)
+                    .header("Location", s3Url)
+                    .build();
+        } catch (Exception e) {
             return ResponseEntity.status(500).build();
         }
     }

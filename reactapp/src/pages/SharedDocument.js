@@ -17,8 +17,13 @@ const SharedDocument = () => {
   const fetchDocument = async () => {
     try {
       setLoading(true);
-      const response = await documentService.getById(id);
-      setDocument(response.data);
+      // Use the shared document endpoint
+      const response = await fetch(`http://localhost:8080/api/documents/shared/${id}`);
+      if (!response.ok) {
+        throw new Error('Document not found');
+      }
+      const data = await response.json();
+      setDocument(data);
     } catch (error) {
       setError('Document not found or access denied');
     } finally {
@@ -28,8 +33,13 @@ const SharedDocument = () => {
 
   const handleDownload = async () => {
     try {
-      const response = await documentService.download(id);
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      if (!document.downloadUrl) {
+        alert('Download not allowed for this document');
+        return;
+      }
+      const response = await fetch(`http://localhost:8080${document.downloadUrl}`);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', document.fileName);
@@ -44,9 +54,9 @@ const SharedDocument = () => {
 
   const handleView = async () => {
     try {
-      const response = await documentService.view(id);
-      const url = window.URL.createObjectURL(new Blob([response.data], { type: document.fileType }));
-      window.open(url, '_blank');
+      if (document.viewUrl) {
+        window.open(`http://localhost:8080${document.viewUrl}`, '_blank');
+      }
     } catch (error) {
       console.error('Error viewing file:', error);
     }
@@ -122,13 +132,20 @@ const SharedDocument = () => {
                   <FiEye size={20} />
                   <span>View Document</span>
                 </button>
-                <button
-                  onClick={handleDownload}
-                  className="flex items-center space-x-2 bg-white text-gray-700 px-6 py-3 rounded-xl font-semibold border border-gray-300 hover:bg-gray-50 transition-colors"
-                >
-                  <FiDownload size={20} />
-                  <span>Download</span>
-                </button>
+                {document.downloadUrl && (
+                  <button
+                    onClick={handleDownload}
+                    className="flex items-center space-x-2 bg-white text-gray-700 px-6 py-3 rounded-xl font-semibold border border-gray-300 hover:bg-gray-50 transition-colors"
+                  >
+                    <FiDownload size={20} />
+                    <span>Download</span>
+                  </button>
+                )}
+                {!document.downloadUrl && (
+                  <div className="text-sm text-gray-500 bg-gray-100 px-4 py-2 rounded-lg">
+                    Download not available - View only access
+                  </div>
+                )}
               </div>
             </div>
 

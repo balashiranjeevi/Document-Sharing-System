@@ -85,19 +85,19 @@ export const documentService = {
   getShared: () => api.get("/documents/shared"),
   getTrash: () => api.get("/documents/trash"),
   getStats: () => api.get("/documents/stats"),
-  share: (id) => api.put(`/documents/${id}/share`),
+  share: (id, shareData = {}) => api.put(`/documents/${id}/share`, shareData),
   moveToTrash: (id) => api.put(`/documents/${id}/trash`),
   download: (id) => {
     if (!id || typeof id !== 'string' && typeof id !== 'number') {
       return Promise.reject(new Error('Invalid document ID'));
     }
-    return api.get(`/documents/${encodeURIComponent(id)}/download`, { responseType: "blob" });
+    return api.get(`/documents/${encodeURIComponent(id)}/download`);
   },
   view: (id) => {
     if (!id || typeof id !== 'string' && typeof id !== 'number') {
       return Promise.reject(new Error('Invalid document ID'));
     }
-    return api.get(`/documents/${encodeURIComponent(id)}/view`, { responseType: "blob" });
+    return api.get(`/documents/${encodeURIComponent(id)}/view`);
   },
   permanentDelete: (id) => api.delete(`/documents/${id}/permanent`),
   restore: (id) => api.put(`/documents/${id}/restore`),

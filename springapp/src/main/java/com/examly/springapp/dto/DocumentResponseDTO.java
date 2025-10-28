@@ -9,6 +9,7 @@ public class DocumentResponseDTO {
     private String fileName;
     private String fileType;
     private String fileUrl;
+    private String directUrl; // Direct S3 URL for cloud access
     private Long size;
     private Document.Visibility visibility;
     private Long parentFolderId;
@@ -25,6 +26,14 @@ public class DocumentResponseDTO {
         this.fileName = doc.getFileName();
         this.fileType = doc.getFileType();
         this.fileUrl = doc.getFileUrl();
+        // Always generate direct S3 URL - cloud only
+        if (doc.getFileUrl() != null) {
+            if (doc.getFileUrl().startsWith("http")) {
+                this.directUrl = doc.getFileUrl();
+            } else {
+                this.directUrl = String.format("https://document-sharing-system.s3.ap-south-1.amazonaws.com/%s", doc.getFileUrl());
+            }
+        }
         this.size = doc.getSize();
         this.fileSize = doc.getSize();
         this.visibility = doc.getVisibility();
@@ -136,5 +145,13 @@ public class DocumentResponseDTO {
 
     public void setOwner(UserResponseDTO owner) {
         this.owner = owner;
+    }
+
+    public String getDirectUrl() {
+        return directUrl;
+    }
+
+    public void setDirectUrl(String directUrl) {
+        this.directUrl = directUrl;
     }
 }

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test S3 URLs - Document Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .success { border-color: #4CAF50; background: #f0fff0; }
+        .error { border-color: #f44336; background: #fff0f0; }
+        .loading { border-color: #2196F3; background: #f0f8ff; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .url-display {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        .status {
+            font-weight: bold;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 S3 URL Testing - Document Management System</h1>
+        <p>This page tests the S3 direct URL functionality for the admin dashboard and document sharing.</p>
+        
+        <div id="admin-test" class="test-section">
+            <h3>📊 Admin Dashboard Test</h3>
+            <p>Testing admin documents endpoint for S3 URLs...</p>
+            <button onclick="testAdminDocuments()">Test Admin Documents</button>
+            <div id="admin-status" class="status"></div>
+            <div id="admin-results"></div>
+        </div>
+
+        <div id="share-test" class="test-section">
+            <h3>🔗 Document Sharing Test</h3>
+            <p>Testing document share functionality for direct S3 URLs...</p>
+            <input type="number" id="docId" placeholder="Document ID" value="1" style="padding: 8px; margin: 5px;">
+            <button onclick="testDocumentShare()">Test Share URL</button>
+            <div id="share-status" class="status"></div>
+            <div id="share-results"></div>
+        </div>
+
+        <div id="direct-test" class="test-section">
+            <h3>☁️ Direct S3 Access Test</h3>
+            <p>Testing direct S3 bucket access...</p>
+            <input type="text" id="s3Key" placeholder="S3 Object Key" style="padding: 8px; margin: 5px; width: 300px;">
+            <button onclick="testDirectS3()">Test Direct S3 URL</button>
+            <div id="direct-status" class="status"></div>
+            <div id="direct-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📋 Test Results Summary</h3>
+            <div id="summary"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin + '/api';
+        let testResults = [];
+
+        async function testAdminDocuments() {
+            const section = document.getElementById('admin-test');
+            const status = document.getElementById('admin-status');
+            const results = document.getElementById('admin-results');
+            
+            section.className = 'test-section loading';
+            status.textContent = 'Testing admin documents endpoint...';
+            results.innerHTML = '';
+
+            try {
+                const response = await fetch(`${API_BASE}/admin/documents`);
+                const data = await response.json();
+                
+                if (response.ok && Array.isArray(data)) {
+                    section.className = 'test-section success';
+                    status.textContent = `✅ Success! Found ${data.length} documents`;
+                    
+                    let html = '<h4>Documents with S3 URLs:</h4>';
+                    data.forEach((doc, index) => {
+                        html += `
+                            <div style="margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                                <strong>${doc.name || doc.title || 'Untitled'}</strong><br>
+                                <small>ID: ${doc.id} | Type: ${doc.type || doc.fileType || 'Unknown'}</small><br>
+                                ${doc.s3Url ? `
+                                    <div class="url-display">S3 URL: ${doc.s3Url}</div>
+                                    <button onclick="window.open('${doc.s3Url}', '_blank')">🔗 Test S3 URL</button>
+                                ` : '<span style="color: red;">❌ No S3 URL available</span>'}
+                                ${doc.directUrl ? `
+                                    <div class="url-display">Direct URL: ${doc.directUrl}</div>
+                                    <button onclick="window.open('${doc.directUrl}', '_blank')">🔗 Test Direct URL</button>
+                                ` : ''}
+                            </div>
+                        `;
+                    });
+                    results.innerHTML = html;
+                    testResults.push({test: 'Admin Documents', status: 'success', details: `${data.length} documents found`});
+                } else {
+                    throw new Error(`Invalid response: ${response.status}`);
+                }
+            } catch (error) {
+                section.className = 'test-section error';
+                status.textContent = `❌ Error: ${error.message}`;
+                results.innerHTML = `<p>Failed to fetch admin documents. Make sure the server is running and you have admin access.</p>`;
+                testResults.push({test: 'Admin Documents', status: 'error', details: error.message});
+            }
+            updateSummary();
+        }
+
+        async function testDocumentShare() {
+            const docId = document.getElementById('docId').value;
+            const section = document.getElementById('share-test');
+            const status = document.getElementById('share-status');
+            const results = document.getElementById('share-results');
+            
+            if (!docId) {
+                status.textContent = '❌ Please enter a document ID';
+                return;
+            }
+
+            section.className = 'test-section loading';
+            status.textContent = `Testing share functionality for document ${docId}...`;
+            results.innerHTML = '';
+
+            try {
+                const response = await fetch(`${API_BASE}/documents/${docId}/share`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ accessLevel: 'download' })
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    section.className = 'test-section success';
+                    status.textContent = '✅ Share functionality working!';
+                    
+                    let html = '<h4>Share URLs Generated:</h4>';
+                    if (data.shareUrl) {
+                        html += `<div class="url-display">Server Share URL: ${data.shareUrl}</div>
+                                <button onclick="window.open('${data.shareUrl}', '_blank')">🔗 Test Server URL</button><br>`;
+                    }
+                    if (data.directUrl || data.s3Url) {
+                        const directUrl = data.directUrl || data.s3Url;
+                        html += `<div class="url-display">Direct S3 URL: ${directUrl}</div>
+                                <button onclick="window.open('${directUrl}', '_blank')">☁️ Test Direct S3 URL</button>`;
+                    }
+                    results.innerHTML = html;
+                    testResults.push({test: 'Document Share', status: 'success', details: 'Share URLs generated'});
+                } else {
+                    throw new Error(`Share failed: ${response.status} - ${data.message || 'Unknown error'}`);
+                }
+            } catch (error) {
+                section.className = 'test-section error';
+                status.textContent = `❌ Error: ${error.message}`;
+                results.innerHTML = `<p>Failed to share document. Make sure document ID ${docId} exists.</p>`;
+                testResults.push({test: 'Document Share', status: 'error', details: error.message});
+            }
+            updateSummary();
+        }
+
+        async function testDirectS3() {
+            const s3Key = document.getElementById('s3Key').value;
+            const section = document.getElementById('direct-test');
+            const status = document.getElementById('direct-status');
+            const results = document.getElementById('direct-results');
+            
+            if (!s3Key) {
+                status.textContent = '❌ Please enter an S3 object key';
+                return;
+            }
+
+            section.className = 'test-section loading';
+            status.textContent = 'Testing direct S3 access...';
+            results.innerHTML = '';
+
+            const s3Url = `https://document-sharing-system.s3.ap-south-1.amazonaws.com/${s3Key}`;
+            
+            try {
+                // Test if the S3 URL is accessible
+                const response = await fetch(s3Url, { method: 'HEAD' });
+                
+                if (response.ok) {
+                    section.className = 'test-section success';
+                    status.textContent = '✅ Direct S3 access working!';
+                    results.innerHTML = `
+                        <div class="url-display">Direct S3 URL: ${s3Url}</div>
+                        <button onclick="window.open('${s3Url}', '_blank')">☁️ Open S3 URL</button>
+                        <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                    `;
+                    testResults.push({test: 'Direct S3 Access', status: 'success', details: 'S3 URL accessible'});
+                } else {
+                    throw new Error(`S3 access failed: ${response.status} ${response.statusText}`);
+                }
+            } catch (error) {
+                section.className = 'test-section error';
+                status.textContent = `❌ Error: ${error.message}`;
+                results.innerHTML = `
+                    <p>Direct S3 access failed. This could be due to:</p>
+                    <ul>
+                        <li>Object doesn't exist</li>
+                        <li>Bucket permissions not configured</li>
+                        <li>CORS issues</li>
+                    </ul>
+                    <div class="url-display">Attempted URL: ${s3Url}</div>
+                `;
+                testResults.push({test: 'Direct S3 Access', status: 'error', details: error.message});
+            }
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const summary = document.getElementById('summary');
+            if (testResults.length === 0) {
+                summary.innerHTML = '<p>No tests run yet.</p>';
+                return;
+            }
+
+            let html = '<table style="width: 100%; border-collapse: collapse;">';
+            html += '<tr style="background: #f0f0f0;"><th style="padding: 8px; border: 1px solid #ddd;">Test</th><th style="padding: 8px; border: 1px solid #ddd;">Status</th><th style="padding: 8px; border: 1px solid #ddd;">Details</th></tr>';
+            
+            testResults.forEach(result => {
+                const statusColor = result.status === 'success' ? '#4CAF50' : '#f44336';
+                const statusIcon = result.status === 'success' ? '✅' : '❌';
+                html += `<tr>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${result.test}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; color: ${statusColor};">${statusIcon} ${result.status}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${result.details}</td>
+                </tr>`;
+            });
+            html += '</table>';
+            summary.innerHTML = html;
+        }
+
+        // Initialize
+        updateSummary();
+    </script>
+</body>
+</html>

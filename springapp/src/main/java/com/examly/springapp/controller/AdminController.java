@@ -6,6 +6,9 @@ import com.examly.springapp.model.ActivityLog;
 import com.examly.springapp.service.UserService;
 import com.examly.springapp.service.DocumentService;
 import com.examly.springapp.service.ActivityLogService;
+import com.examly.springapp.service.FileStorageService;
+import com.examly.springapp.service.SettingsService;
+import com.examly.springapp.model.Settings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,10 +34,10 @@ public class AdminController {
     private ActivityLogService activityLogService;
 
     @Autowired
-    private com.examly.springapp.service.FileStorageService fileStorageService;
+    private FileStorageService fileStorageService;
 
     @Autowired
-    private com.examly.springapp.service.SettingsService settingsService;
+    private SettingsService settingsService;
 
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getAdminStats() {
@@ -122,10 +125,22 @@ public class AdminController {
                         Map<String, Object> docMap = new HashMap<>();
                         docMap.put("id", doc.getId());
                         docMap.put("name", doc.getTitle());
+                        docMap.put("title", doc.getTitle());
+                        docMap.put("fileName", doc.getFileName());
                         docMap.put("type", doc.getFileType());
+                        docMap.put("fileType", doc.getFileType());
                         docMap.put("size", doc.getSize());
                         docMap.put("owner", doc.getOwnerId() != null ? "User " + doc.getOwnerId() : "Unknown");
+                        docMap.put("ownerId", doc.getOwnerId());
                         docMap.put("uploadedAt", doc.getCreatedAt() != null ? doc.getCreatedAt().toString() : null);
+                        docMap.put("createdAt", doc.getCreatedAt() != null ? doc.getCreatedAt().toString() : null);
+                        // Add S3 URL for direct access
+                        if (doc.getFileUrl() != null) {
+                            String s3Url = fileStorageService.getDirectUrl(doc.getFileUrl());
+                            docMap.put("s3Url", s3Url);
+                            docMap.put("directUrl", s3Url);
+                            docMap.put("fileUrl", doc.getFileUrl());
+                        }
                         return docMap;
                     })
                     .collect(java.util.stream.Collectors.toList());
@@ -184,31 +199,71 @@ public class AdminController {
     }
 
     @GetMapping("/documents/{documentId}/download")
-    public ResponseEntity<org.springframework.core.io.Resource> downloadDocument(@PathVariable Long documentId) {
+    public ResponseEntity<?> downloadDocument(@PathVariable Long documentId) {
         try {
             Document document = documentService.getDocumentById(documentId);
             if (document.getFileUrl() == null) {
                 return ResponseEntity.notFound().build();
             }
 
-            java.nio.file.Path filePath = fileStorageService.getFilePath(document.getFileUrl());
-            org.springframework.core.io.Resource resource = new org.springframework.core.io.UrlResource(
-                    filePath.toUri());
+            // Log admin download activity
+            activityLogService.logActivity(document, userService.getUserById(document.getOwnerId()), "DOWNLOADED",
+                    "Document downloaded by admin: " + document.getFileName());
 
-            if (resource.exists() && resource.isReadable()) {
-                // Log admin download activity
-                activityLogService.logActivity(document, userService.getUserById(document.getOwnerId()), "DOWNLOADED",
-                        "Document downloaded by admin: " + document.getFileName());
-
-                return ResponseEntity.ok()
-                        .header("Content-Disposition", "attachment; filename=\"" + document.getFileName() + "\"")
-                        .header("Content-Type", document.getFileType())
-                        .body(resource);
-            } else {
-                return ResponseEntity.notFound().build();
-            }
+            // Return direct S3 URL in JSON response
+            String s3Url = fileStorageService.getDirectUrl(document.getFileUrl());
+            Map<String, String> response = new HashMap<>();
+            response.put("downloadUrl", s3Url);
+            response.put("fileName", document.getFileName());
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             System.err.println("Error downloading document by admin: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
+    }
+
+    @GetMapping("/documents/{documentId}/view")
+    public ResponseEntity<?> viewDocument(@PathVariable Long documentId) {
+        try {
+            Document document = documentService.getDocumentById(documentId);
+            if (document.getFileUrl() == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // Log admin view activity
+            activityLogService.logActivity(document, userService.getUserById(document.getOwnerId()), "VIEWED",
+                    "Document viewed by admin: " + document.getFileName());
+
+            // Return direct S3 URL in JSON response
+            String s3Url = fileStorageService.getDirectUrl(document.getFileUrl());
+            Map<String, String> response = new HashMap<>();
+            response.put("viewUrl", s3Url);
+            response.put("fileName", document.getFileName());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("Error viewing document by admin: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
+    }
+
+    @GetMapping("/documents/{documentId}/share")
+    public ResponseEntity<?> getShareUrl(@PathVariable Long documentId) {
+        try {
+            Document document = documentService.getDocumentById(documentId);
+            if (document.getFileUrl() == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // Return direct S3 URL for sharing
+            String s3Url = fileStorageService.getDirectUrl(document.getFileUrl());
+            Map<String, String> response = new HashMap<>();
+            response.put("shareUrl", s3Url);
+            response.put("fileName", document.getFileName());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("Error getting share URL by admin: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(500).build();
         }
@@ -240,9 +295,9 @@ public class AdminController {
     }
 
     @GetMapping("/settings")
-    public ResponseEntity<com.examly.springapp.model.Settings> getSettings() {
+    public ResponseEntity<Settings> getSettings() {
         try {
-            com.examly.springapp.model.Settings settings = settingsService.getSettings();
+            Settings settings = settingsService.getSettings();
             return ResponseEntity.ok(settings);
         } catch (Exception e) {
             System.err.println("Error getting settings: " + e.getMessage());
@@ -252,10 +307,9 @@ public class AdminController {
     }
 
     @PutMapping("/settings")
-    public ResponseEntity<com.examly.springapp.model.Settings> updateSettings(
-            @RequestBody com.examly.springapp.model.Settings settings) {
+    public ResponseEntity<Settings> updateSettings(@RequestBody Settings settings) {
         try {
-            com.examly.springapp.model.Settings updatedSettings = settingsService.updateSettings(settings);
+            Settings updatedSettings = settingsService.updateSettings(settings);
             return ResponseEntity.ok(updatedSettings);
         } catch (Exception e) {
             System.err.println("Error updating settings: " + e.getMessage());

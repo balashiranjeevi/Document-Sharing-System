@@ -34,15 +34,18 @@ const DocumentList = ({
 
   const handleDownload = async (doc) => {
     try {
-      const response = await documentService.download(doc.id);
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", doc.fileName);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      // Always use direct S3 URL - cloud only
+      if (doc.directUrl) {
+        window.open(doc.directUrl, '_blank');
+      } else {
+        // Get S3 URL from server
+        const response = await documentService.download(doc.id);
+        if (response.data && response.data.downloadUrl) {
+          window.open(response.data.downloadUrl, '_blank');
+        } else {
+          console.error('No download URL received');
+        }
+      }
     } catch (error) {
       console.error("Error downloading file:", error);
     }
@@ -50,32 +53,40 @@ const DocumentList = ({
 
   const handleView = async (doc) => {
     try {
-      const response = await documentService.view(doc.id);
-      const url = window.URL.createObjectURL(
-        new Blob([response.data], { type: doc.fileType })
-      );
-      window.open(url, "_blank");
+      // Always use direct S3 URL - cloud only
+      if (doc.directUrl) {
+        window.open(doc.directUrl, '_blank');
+      } else {
+        // Get S3 URL from server
+        const response = await documentService.view(doc.id);
+        if (response.data && response.data.viewUrl) {
+          window.open(response.data.viewUrl, '_blank');
+        } else {
+          console.error('No view URL received');
+        }
+      }
     } catch (error) {
       console.error("Error viewing file:", error);
     }
   };
 
   const handleShare = async (doc) => {
-    // Generate share URL immediately
-    const shareUrl = `${window.location.origin}/shared/${doc.id}`;
-
-    // Show modal immediately
-    setShareModal({
-      document: doc,
-      shareUrl: shareUrl,
-    });
-
     try {
-      // Try to call backend share API in background
-      await documentService.share(doc.id);
-      showNotification("Document shared successfully!", "success");
+      // Get share URLs from server (both server and direct S3 URLs)
+      const response = await documentService.share(doc.id, { accessLevel: 'view' });
+      const shareUrl = response.data.directUrl || response.data.s3Url || `${window.location.origin}/shared/${doc.id}`;
+      setShareModal({
+        document: doc,
+        shareUrl: shareUrl,
+      });
     } catch (error) {
-      showNotification("Share link generated", "success");
+      console.error("Error getting share URL:", error);
+      // Fallback to default share URL
+      const shareUrl = `${window.location.origin}/shared/${doc.id}`;
+      setShareModal({
+        document: doc,
+        shareUrl: shareUrl,
+      });
     }
   };
 

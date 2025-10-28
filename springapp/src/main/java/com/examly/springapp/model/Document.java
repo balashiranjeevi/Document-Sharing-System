@@ -29,8 +29,15 @@ public class Document {
         PRIVATE, PUBLIC
     }
 
+    public enum ShareAccessLevel {
+        VIEW_ONLY, VIEW_AND_DOWNLOAD
+    }
+
     @Enumerated(EnumType.STRING)
     private Visibility visibility;
+
+    @Enumerated(EnumType.STRING)
+    private ShareAccessLevel shareAccessLevel;
 
     private Long parentFolderId;
     
@@ -151,5 +158,13 @@ public class Document {
 
     public void setDeletedAt(java.time.LocalDateTime deletedAt) {
         this.deletedAt = deletedAt;
+    }
+
+    public ShareAccessLevel getShareAccessLevel() {
+        return shareAccessLevel;
+    }
+
+    public void setShareAccessLevel(ShareAccessLevel shareAccessLevel) {
+        this.shareAccessLevel = shareAccessLevel;
     }
 }

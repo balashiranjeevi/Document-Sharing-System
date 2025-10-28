@@ -22,7 +22,7 @@ public class SharedController {
     private ActivityLogService activityLogService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<org.springframework.core.io.Resource> getSharedDocument(@PathVariable Long id) {
+    public ResponseEntity<?> getSharedDocument(@PathVariable Long id) {
         try {
             Document document = documentService.getDocumentById(id);
 
@@ -35,22 +35,15 @@ public class SharedController {
                 return ResponseEntity.notFound().build();
             }
 
-            java.nio.file.Path filePath = fileStorageService.getFilePath(document.getFileUrl());
-            org.springframework.core.io.Resource resource = new org.springframework.core.io.UrlResource(
-                    filePath.toUri());
+            // Log view activity for shared document
+            activityLogService.logActivity(document, null, "SHARED_VIEW",
+                    "Shared document viewed: " + document.getFileName());
 
-            if (resource.exists() && resource.isReadable()) {
-                // Log view activity for shared document
-                activityLogService.logActivity(document, null, "SHARED_VIEW",
-                        "Shared document viewed: " + document.getFileName());
-
-                return ResponseEntity.ok()
-                        .header("Content-Type", document.getFileType())
-                        .header("Content-Disposition", "inline; filename=\"" + document.getFileName() + "\"")
-                        .body(resource);
-            } else {
-                return ResponseEntity.notFound().build();
-            }
+            // Redirect to direct S3 URL
+            String s3Url = fileStorageService.getDirectUrl(document.getFileUrl());
+            return ResponseEntity.status(302)
+                    .header("Location", s3Url)
+                    .build();
         } catch (Exception e) {
             return ResponseEntity.status(500).build();
         }
