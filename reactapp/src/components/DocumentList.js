@@ -34,18 +34,21 @@ const DocumentList = ({
 
   const handleDownload = async (doc) => {
     try {
-      // Always use direct S3 URL - cloud only
-      if (doc.directUrl) {
-        window.open(doc.directUrl, '_blank');
-      } else {
+      let downloadUrl = doc.downloadUrl || doc.directUrl;
+      
+      if (!downloadUrl) {
         // Get S3 URL from server
         const response = await documentService.download(doc.id);
         if (response.data && response.data.downloadUrl) {
-          window.open(response.data.downloadUrl, '_blank');
+          downloadUrl = response.data.downloadUrl;
         } else {
           console.error('No download URL received');
+          return;
         }
       }
+      
+      // Use the download URL directly - S3 will handle Content-Disposition
+      window.open(downloadUrl, '_blank');
     } catch (error) {
       console.error("Error downloading file:", error);
     }

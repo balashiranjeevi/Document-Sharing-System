@@ -100,4 +100,16 @@ public class S3StorageService {
         // Generate direct S3 URL (bucket must be public)
         return String.format("https://%s.s3.ap-south-1.amazonaws.com/%s", bucketName, filename);
     }
+
+    public String generateDownloadUrl(String filename, String originalFilename) {
+        // Generate S3 URL with response-content-disposition to force download
+        try {
+            String encodedFilename = java.net.URLEncoder.encode(originalFilename, "UTF-8").replace("+", "%20");
+            return String.format("https://%s.s3.ap-south-1.amazonaws.com/%s?response-content-disposition=attachment%%3B%%20filename%%3D\"%s\"", 
+                bucketName, filename, encodedFilename);
+        } catch (Exception e) {
+            // Fallback to regular URL if encoding fails
+            return generatePublicUrl(filename);
+        }
+    }
 }

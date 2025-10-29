@@ -32,4 +32,8 @@ public class FileStorageService {
     public String getDirectUrl(String filename) {
         return s3StorageService.generatePublicUrl(filename);
     }
+
+    public String getDownloadUrl(String filename, String originalFilename) {
+        return s3StorageService.generateDownloadUrl(filename, originalFilename);
+    }
 }

@@ -292,13 +292,14 @@ const Admin = () => {
 
   const handleDownloadDocument = async (docId, docName) => {
     try {
-      // Get document info to access S3 URL directly
+      // Get document info to access download URL directly
       const response = await axios.get(`admin/documents`);
       const document = response.data.find(doc => doc.id === docId);
       
-      if (document && document.s3Url) {
-        // Open S3 URL directly in new tab for download
-        window.open(document.s3Url, '_blank');
+      if (document && (document.downloadUrl || document.s3Url)) {
+        // Use download URL with proper Content-Disposition or fallback to S3 URL
+        const downloadUrl = document.downloadUrl || document.s3Url;
+        window.open(downloadUrl, '_blank');
       } else {
         setError("Document URL not available");
       }

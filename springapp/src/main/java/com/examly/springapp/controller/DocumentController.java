@@ -76,11 +76,13 @@ public class DocumentController {
                                 doc.getVisibility() != null ? doc.getVisibility().toString() : "PRIVATE");
                         docMap.put("createdAt", doc.getCreatedAt() != null ? doc.getCreatedAt().toString() : null);
                         docMap.put("updatedAt", doc.getUpdatedAt() != null ? doc.getUpdatedAt().toString() : null);
-                        // Add S3 URL for direct access
+                        // Add S3 URLs for direct access
                         if (doc.getFileUrl() != null) {
                             String s3Url = fileStorageService.getDirectUrl(doc.getFileUrl());
+                            String downloadUrl = fileStorageService.getDownloadUrl(doc.getFileUrl(), doc.getFileName());
                             docMap.put("directUrl", s3Url);
                             docMap.put("s3Url", s3Url);
+                            docMap.put("downloadUrl", downloadUrl);
                         }
                         return docMap;
                     })
@@ -199,12 +201,13 @@ public class DocumentController {
                 return ResponseEntity.notFound().build();
             }
 
-            // Return direct S3 URL in JSON response
-            String s3Url = fileStorageService.getDirectUrl(document.getFileUrl());
-            Map<String, String> response = new java.util.HashMap<>();
-            response.put("downloadUrl", s3Url);
-            response.put("fileName", document.getFileName());
-            return ResponseEntity.ok(response);
+            // Get file from S3 and stream it with download headers
+            java.io.InputStream fileStream = fileStorageService.getFileStream(document.getFileUrl());
+            
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=\"" + document.getFileName() + "\"")
+                    .header("Content-Type", document.getFileType())
+                    .body(new org.springframework.core.io.InputStreamResource(fileStream));
         } catch (Exception e) {
             return ResponseEntity.status(500).build();
         }
@@ -266,11 +269,13 @@ public class DocumentController {
                                 doc.getVisibility() != null ? doc.getVisibility().toString() : "PRIVATE");
                         docMap.put("createdAt", doc.getCreatedAt() != null ? doc.getCreatedAt().toString() : null);
                         docMap.put("updatedAt", doc.getUpdatedAt() != null ? doc.getUpdatedAt().toString() : null);
-                        // Add S3 URL for direct access
+                        // Add S3 URLs for direct access
                         if (doc.getFileUrl() != null) {
                             String s3Url = fileStorageService.getDirectUrl(doc.getFileUrl());
+                            String downloadUrl = fileStorageService.getDownloadUrl(doc.getFileUrl(), doc.getFileName());
                             docMap.put("directUrl", s3Url);
                             docMap.put("s3Url", s3Url);
+                            docMap.put("downloadUrl", downloadUrl);
                         }
                         return docMap;
                     })

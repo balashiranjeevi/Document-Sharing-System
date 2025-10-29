@@ -134,11 +134,13 @@ public class AdminController {
                         docMap.put("ownerId", doc.getOwnerId());
                         docMap.put("uploadedAt", doc.getCreatedAt() != null ? doc.getCreatedAt().toString() : null);
                         docMap.put("createdAt", doc.getCreatedAt() != null ? doc.getCreatedAt().toString() : null);
-                        // Add S3 URL for direct access
+                        // Add S3 URLs for direct access
                         if (doc.getFileUrl() != null) {
                             String s3Url = fileStorageService.getDirectUrl(doc.getFileUrl());
+                            String downloadUrl = fileStorageService.getDownloadUrl(doc.getFileUrl(), doc.getFileName());
                             docMap.put("s3Url", s3Url);
                             docMap.put("directUrl", s3Url);
+                            docMap.put("downloadUrl", downloadUrl);
                             docMap.put("fileUrl", doc.getFileUrl());
                         }
                         return docMap;
@@ -210,10 +212,10 @@ public class AdminController {
             activityLogService.logActivity(document, userService.getUserById(document.getOwnerId()), "DOWNLOADED",
                     "Document downloaded by admin: " + document.getFileName());
 
-            // Return direct S3 URL in JSON response
-            String s3Url = fileStorageService.getDirectUrl(document.getFileUrl());
+            // Return S3 download URL with proper Content-Disposition header
+            String downloadUrl = fileStorageService.getDownloadUrl(document.getFileUrl(), document.getFileName());
             Map<String, String> response = new HashMap<>();
-            response.put("downloadUrl", s3Url);
+            response.put("downloadUrl", downloadUrl);
             response.put("fileName", document.getFileName());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
