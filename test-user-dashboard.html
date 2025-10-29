@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test User Dashboard - Document Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .success { border-color: #4CAF50; background: #f0fff0; }
+        .error { border-color: #f44336; background: #fff0f0; }
+        .loading { border-color: #2196F3; background: #f0f8ff; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .url-display {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        .status {
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .document-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            background: white;
+        }
+        .document-actions {
+            margin-top: 10px;
+        }
+        .document-actions button {
+            margin-right: 10px;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+        .view-btn { background: #28a745; }
+        .download-btn { background: #007bff; }
+        .share-btn { background: #6f42c1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 User Dashboard Testing - Document Management System</h1>
+        <p>This page tests the user dashboard functionality for view, download, and share operations.</p>
+        
+        <div id="documents-test" class="test-section">
+            <h3>📄 User Documents Test</h3>
+            <p>Testing user documents endpoint for S3 URLs and functionality...</p>
+            <button onclick="testUserDocuments()">Load User Documents</button>
+            <div id="documents-status" class="status"></div>
+            <div id="documents-results"></div>
+        </div>
+
+        <div id="api-test" class="test-section">
+            <h3>🔗 API Endpoints Test</h3>
+            <p>Testing individual API endpoints...</p>
+            <input type="number" id="testDocId" placeholder="Document ID" value="1" style="padding: 8px; margin: 5px;">
+            <button onclick="testViewEndpoint()">Test View API</button>
+            <button onclick="testDownloadEndpoint()">Test Download API</button>
+            <button onclick="testShareEndpoint()">Test Share API</button>
+            <div id="api-status" class="status"></div>
+            <div id="api-results"></div>
+        </div>
+
+        <div id="recent-test" class="test-section">
+            <h3>🕒 Recent Documents Test</h3>
+            <p>Testing recent documents endpoint...</p>
+            <button onclick="testRecentDocuments()">Test Recent Documents</button>
+            <div id="recent-status" class="status"></div>
+            <div id="recent-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📋 Test Results Summary</h3>
+            <div id="summary"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin + '/api';
+        let testResults = [];
+
+        async function testUserDocuments() {
+            const section = document.getElementById('documents-test');
+            const status = document.getElementById('documents-status');
+            const results = document.getElementById('documents-results');
+            
+            section.className = 'test-section loading';
+            status.textContent = 'Loading user documents...';
+            results.innerHTML = '';
+
+            try {
+                const response = await fetch(`${API_BASE}/documents`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    section.className = 'test-section success';
+                    const documents = data.content || data;
+                    status.textContent = `✅ Success! Found ${documents.length} documents`;
+                    
+                    let html = '<h4>User Documents with Actions:</h4>';
+                    documents.forEach((doc, index) => {
+                        html += `
+                            <div class="document-item">
+                                <strong>${doc.title || doc.name || 'Untitled'}</strong><br>
+                                <small>ID: ${doc.id} | Type: ${doc.fileType || 'Unknown'} | Size: ${formatFileSize(doc.size)}</small><br>
+                                ${doc.directUrl ? `
+                                    <div class="url-display">Direct URL: ${doc.directUrl}</div>
+                                ` : '<span style="color: orange;">⚠️ No direct URL - will use API</span>'}
+                                <div class="document-actions">
+                                    <button class="view-btn" onclick="testViewDocument(${doc.id}, '${doc.title || doc.name}', '${doc.directUrl || ''}')">👁️ View</button>
+                                    <button class="download-btn" onclick="testDownloadDocument(${doc.id}, '${doc.title || doc.name}', '${doc.directUrl || ''}')">⬇️ Download</button>
+                                    <button class="share-btn" onclick="testShareDocument(${doc.id}, '${doc.title || doc.name}')">🔗 Share</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    results.innerHTML = html;
+                    testResults.push({test: 'User Documents', status: 'success', details: `${documents.length} documents loaded`});
+                } else {
+                    throw new Error(`Failed to load documents: ${response.status}`);
+                }
+            } catch (error) {
+                section.className = 'test-section error';
+                status.textContent = `❌ Error: ${error.message}`;
+                results.innerHTML = `<p>Failed to load user documents. Make sure the server is running and you're logged in.</p>`;
+                testResults.push({test: 'User Documents', status: 'error', details: error.message});
+            }
+            updateSummary();
+        }
+
+        async function testViewDocument(docId, docName, directUrl) {
+            console.log(`Testing view for document ${docId}: ${docName}`);
+            
+            if (directUrl) {
+                console.log('Using direct URL:', directUrl);
+                window.open(directUrl, '_blank');
+            } else {
+                console.log('Using API endpoint for view');
+                try {
+                    const response = await fetch(`${API_BASE}/documents/${docId}/view`);
+                    const data = await response.json();
+                    
+                    if (data.viewUrl) {
+                        console.log('Got view URL from API:', data.viewUrl);
+                        window.open(data.viewUrl, '_blank');
+                    } else {
+                        alert('No view URL received from server');
+                    }
+                } catch (error) {
+                    console.error('View API error:', error);
+                    alert('Failed to get view URL: ' + error.message);
+                }
+            }
+        }
+
+        async function testDownloadDocument(docId, docName, directUrl) {
+            console.log(`Testing download for document ${docId}: ${docName}`);
+            
+            if (directUrl) {
+                console.log('Using direct URL:', directUrl);
+                window.open(directUrl, '_blank');
+            } else {
+                console.log('Using API endpoint for download');
+                try {
+                    const response = await fetch(`${API_BASE}/documents/${docId}/download`);
+                    const data = await response.json();
+                    
+                    if (data.downloadUrl) {
+                        console.log('Got download URL from API:', data.downloadUrl);
+                        window.open(data.downloadUrl, '_blank');
+                    } else {
+                        alert('No download URL received from server');
+                    }
+                } catch (error) {
+                    console.error('Download API error:', error);
+                    alert('Failed to get download URL: ' + error.message);
+                }
+            }
+        }
+
+        async function testShareDocument(docId, docName) {
+            console.log(`Testing share for document ${docId}: ${docName}`);
+            
+            try {
+                const response = await fetch(`${API_BASE}/documents/${docId}/share`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ accessLevel: 'download' })
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const shareUrl = data.directUrl || data.s3Url || data.shareUrl;
+                    console.log('Share URLs:', data);
+                    
+                    if (shareUrl) {
+                        navigator.clipboard.writeText(shareUrl).then(() => {
+                            alert(`Share URL copied to clipboard!\\n\\nDirect S3 URL: ${shareUrl}`);
+                        }).catch(() => {
+                            alert(`Share URL: ${shareUrl}`);
+                        });
+                    } else {
+                        alert('No share URL received from server');
+                    }
+                } else {
+                    throw new Error(`Share failed: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Share API error:', error);
+                alert('Failed to share document: ' + error.message);
+            }
+        }
+
+        async function testViewEndpoint() {
+            const docId = document.getElementById('testDocId').value;
+            const section = document.getElementById('api-test');
+            const status = document.getElementById('api-status');
+            const results = document.getElementById('api-results');
+            
+            if (!docId) {
+                status.textContent = '❌ Please enter a document ID';
+                return;
+            }
+
+            section.className = 'test-section loading';
+            status.textContent = `Testing view endpoint for document ${docId}...`;
+
+            try {
+                const response = await fetch(`${API_BASE}/documents/${docId}/view`);
+                const data = await response.json();
+                
+                if (response.ok && data.viewUrl) {
+                    section.className = 'test-section success';
+                    status.textContent = '✅ View endpoint working!';
+                    results.innerHTML = `
+                        <div class="url-display">View URL: ${data.viewUrl}</div>
+                        <button onclick="window.open('${data.viewUrl}', '_blank')">🔗 Test View URL</button>
+                    `;
+                    testResults.push({test: 'View Endpoint', status: 'success', details: 'View URL received'});
+                } else {
+                    throw new Error('No view URL in response');
+                }
+            } catch (error) {
+                section.className = 'test-section error';
+                status.textContent = `❌ Error: ${error.message}`;
+                results.innerHTML = `<p>View endpoint test failed.</p>`;
+                testResults.push({test: 'View Endpoint', status: 'error', details: error.message});
+            }
+            updateSummary();
+        }
+
+        async function testDownloadEndpoint() {
+            const docId = document.getElementById('testDocId').value;
+            const section = document.getElementById('api-test');
+            const status = document.getElementById('api-status');
+            const results = document.getElementById('api-results');
+            
+            if (!docId) {
+                status.textContent = '❌ Please enter a document ID';
+                return;
+            }
+
+            section.className = 'test-section loading';
+            status.textContent = `Testing download endpoint for document ${docId}...`;
+
+            try {
+                const response = await fetch(`${API_BASE}/documents/${docId}/download`);
+                const data = await response.json();
+                
+                if (response.ok && data.downloadUrl) {
+                    section.className = 'test-section success';
+                    status.textContent = '✅ Download endpoint working!';
+                    results.innerHTML = `
+                        <div class="url-display">Download URL: ${data.downloadUrl}</div>
+                        <button onclick="window.open('${data.downloadUrl}', '_blank')">🔗 Test Download URL</button>
+                    `;
+                    testResults.push({test: 'Download Endpoint', status: 'success', details: 'Download URL received'});
+                } else {
+                    throw new Error('No download URL in response');
+                }
+            } catch (error) {
+                section.className = 'test-section error';
+                status.textContent = `❌ Error: ${error.message}`;
+                results.innerHTML = `<p>Download endpoint test failed.</p>`;
+                testResults.push({test: 'Download Endpoint', status: 'error', details: error.message});
+            }
+            updateSummary();
+        }
+
+        async function testShareEndpoint() {
+            const docId = document.getElementById('testDocId').value;
+            const section = document.getElementById('api-test');
+            const status = document.getElementById('api-status');
+            const results = document.getElementById('api-results');
+            
+            if (!docId) {
+                status.textContent = '❌ Please enter a document ID';
+                return;
+            }
+
+            section.className = 'test-section loading';
+            status.textContent = `Testing share endpoint for document ${docId}...`;
+
+            try {
+                const response = await fetch(`${API_BASE}/documents/${docId}/share`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ accessLevel: 'download' })
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    section.className = 'test-section success';
+                    status.textContent = '✅ Share endpoint working!';
+                    
+                    let html = '<h4>Share URLs Generated:</h4>';
+                    if (data.shareUrl) {
+                        html += `<div class="url-display">Server URL: ${data.shareUrl}</div>`;
+                    }
+                    if (data.directUrl || data.s3Url) {
+                        const directUrl = data.directUrl || data.s3Url;
+                        html += `<div class="url-display">Direct S3 URL: ${directUrl}</div>
+                                <button onclick="window.open('${directUrl}', '_blank')">☁️ Test Direct URL</button>`;
+                    }
+                    results.innerHTML = html;
+                    testResults.push({test: 'Share Endpoint', status: 'success', details: 'Share URLs generated'});
+                } else {
+                    throw new Error(`Share failed: ${response.status}`);
+                }
+            } catch (error) {
+                section.className = 'test-section error';
+                status.textContent = `❌ Error: ${error.message}`;
+                results.innerHTML = `<p>Share endpoint test failed.</p>`;
+                testResults.push({test: 'Share Endpoint', status: 'error', details: error.message});
+            }
+            updateSummary();
+        }
+
+        async function testRecentDocuments() {
+            const section = document.getElementById('recent-test');
+            const status = document.getElementById('recent-status');
+            const results = document.getElementById('recent-results');
+            
+            section.className = 'test-section loading';
+            status.textContent = 'Testing recent documents endpoint...';
+            results.innerHTML = '';
+
+            try {
+                const response = await fetch(`${API_BASE}/documents/recent`);
+                const data = await response.json();
+                
+                if (response.ok && Array.isArray(data)) {
+                    section.className = 'test-section success';
+                    status.textContent = `✅ Success! Found ${data.length} recent documents`;
+                    
+                    let html = '<h4>Recent Documents:</h4>';
+                    data.forEach((doc, index) => {
+                        html += `
+                            <div class="document-item">
+                                <strong>${doc.title || 'Untitled'}</strong><br>
+                                <small>ID: ${doc.id} | Type: ${doc.fileType || 'Unknown'}</small><br>
+                                ${doc.directUrl ? `
+                                    <div class="url-display">Direct URL: ${doc.directUrl}</div>
+                                    <button onclick="window.open('${doc.directUrl}', '_blank')">🔗 Test URL</button>
+                                ` : '<span style="color: orange;">⚠️ No direct URL</span>'}
+                            </div>
+                        `;
+                    });
+                    results.innerHTML = html;
+                    testResults.push({test: 'Recent Documents', status: 'success', details: `${data.length} documents found`});
+                } else {
+                    throw new Error(`Invalid response: ${response.status}`);
+                }
+            } catch (error) {
+                section.className = 'test-section error';
+                status.textContent = `❌ Error: ${error.message}`;
+                results.innerHTML = `<p>Failed to fetch recent documents.</p>`;
+                testResults.push({test: 'Recent Documents', status: 'error', details: error.message});
+            }
+            updateSummary();
+        }
+
+        function formatFileSize(bytes) {
+            if (!bytes) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function updateSummary() {
+            const summary = document.getElementById('summary');
+            if (testResults.length === 0) {
+                summary.innerHTML = '<p>No tests run yet.</p>';
+                return;
+            }
+
+            let html = '<table style="width: 100%; border-collapse: collapse;">';
+            html += '<tr style="background: #f0f0f0;"><th style="padding: 8px; border: 1px solid #ddd;">Test</th><th style="padding: 8px; border: 1px solid #ddd;">Status</th><th style="padding: 8px; border: 1px solid #ddd;">Details</th></tr>';
+            
+            testResults.forEach(result => {
+                const statusColor = result.status === 'success' ? '#4CAF50' : '#f44336';
+                const statusIcon = result.status === 'success' ? '✅' : '❌';
+                html += `<tr>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${result.test}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; color: ${statusColor};">${statusIcon} ${result.status}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${result.details}</td>
+                </tr>`;
+            });
+            html += '</table>';
+            summary.innerHTML = html;
+        }
+
+        // Initialize
+        updateSummary();
+    </script>
+</body>
+</html>

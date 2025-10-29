@@ -1,0 +1,15 @@
+# Ignore Node modules and caches
+node_modules/
+.cache/
+reactapp/node_modules/
+reactapp/.cache/
+
+# Build output
+dist/
+build/
+*.log
+
+# OS & IDE files
+.DS_Store
+Thumbs.db
+.vscode/

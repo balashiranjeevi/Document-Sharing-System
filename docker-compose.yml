@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: documentdb
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./springapp/create_database.sql:/docker-entrypoint-initdb.d/01-create-database.sql
+      - ./springapp/create_tables.sql:/docker-entrypoint-initdb.d/02-create-tables.sql
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DATABASE_URL: jdbc:mysql://mysql:3306/documentdb
+      DATABASE_USERNAME: root
+      DATABASE_PASSWORD: root
+      JWT_SECRET: mySecretKey123456789012345678901234567890
+      CORS_ORIGINS: http://localhost:3000,http://localhost:80
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    volumes:
+      - ./uploads:/app/uploads
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    environment:
+      REACT_APP_API_BASE_URL: http://localhost:8080/api
+      REACT_APP_WEBSOCKET_URL: ws://localhost:8080/ws
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:
