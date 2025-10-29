@@ -46,6 +46,22 @@ public class DocumentService {
         }
     }
 
+    public Page<Document> getAllDocumentsByOwner(Long ownerId, int page, int size, String sortBy, String sortDir, String search) {
+        try {
+            Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+            Pageable pageable = PageRequest.of(page, size, sort);
+
+            if (search != null && !search.isEmpty()) {
+                return documentRepository.findByOwnerIdAndTitleContainingIgnoreCaseAndDeletedAtIsNull(ownerId, search, pageable);
+            }
+            return documentRepository.findByOwnerIdAndDeletedAtIsNull(ownerId, pageable);
+        } catch (Exception e) {
+            System.err.println("Error getting documents by owner: " + e.getMessage());
+            e.printStackTrace();
+            return Page.empty();
+        }
+    }
+
     public Page<Document> getAllDocuments(Pageable pageable) {
         return documentRepository.findAll(pageable);
     }
@@ -273,6 +289,17 @@ public class DocumentService {
             return documentRepository.findByCreatedAtAfterAndDeletedAtIsNull(weekAgo);
         } catch (Exception e) {
             System.err.println("Error getting recent documents: " + e.getMessage());
+            e.printStackTrace();
+            return new java.util.ArrayList<>();
+        }
+    }
+
+    public List<Document> getRecentDocumentsByOwner(Long ownerId) {
+        try {
+            java.time.LocalDateTime weekAgo = java.time.LocalDateTime.now().minusDays(7);
+            return documentRepository.findByOwnerIdAndCreatedAtAfterAndDeletedAtIsNull(ownerId, weekAgo);
+        } catch (Exception e) {
+            System.err.println("Error getting recent documents by owner: " + e.getMessage());
             e.printStackTrace();
             return new java.util.ArrayList<>();
         }

@@ -222,6 +222,33 @@ const Login = () => {
                 </div>
               )}
 
+              {/* Demo Credentials */}
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+                <p className="text-sm font-semibold text-blue-800 mb-2">Demo Credentials:</p>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-blue-700">Admin: admin@example.com / admin123</span>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({email: 'admin@example.com', password: 'admin123'})}
+                      className="text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      Use
+                    </button>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-blue-700">User: bala@gmail.com / Qwerty109</span>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({email: 'bala@gmail.com', password: 'Qwerty109'})}
+                      className="text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      Use
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               {/* Email Field */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">

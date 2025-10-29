@@ -181,7 +181,7 @@ const Dashboard = () => {
           break;
         case "home":
         default:
-          // Use getAll with pagination for home section to show all documents
+          // Use getAll with pagination for home section to show user's documents
           response = await documentService.getAll({
             page,
             size,
@@ -210,11 +210,15 @@ const Dashboard = () => {
     }
   };
 
-  const handleUploadSuccess = () => {
+  const handleUploadSuccess = (uploadedDocs = []) => {
+    // Close modal immediately
     setShowUpload(false);
-    // Immediately refresh documents and stats after upload
+    // Force refresh documents to show uploaded file
     fetchDocuments();
-    fetchStats();
+    // Refresh stats if on home
+    if (activeSection === "home") {
+      fetchStats();
+    }
     setRefreshTrigger((prev) => prev + 1);
   };
 

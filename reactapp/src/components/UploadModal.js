@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { FiUpload, FiX, FiFile, FiCheck, FiAlertCircle } from "react-icons/fi";
-import api from "../utils/api";
+import { documentService } from "../utils/api";
 
 const UploadModal = ({ onClose, onSuccess }) => {
   const [files, setFiles] = useState([]);
@@ -46,7 +46,11 @@ const UploadModal = ({ onClose, onSuccess }) => {
     setFiles((prev) => prev.filter((f) => f.id !== id));
   };
 
-  const uploadFiles = async () => {
+  const uploadFiles = async (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (!files.length || uploading) return;
 
     setUploading(true);
@@ -80,17 +84,13 @@ const UploadModal = ({ onClose, onSuccess }) => {
           );
         }, 200);
 
-        await api.post("/documents/upload", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        const response = await documentService.upload(formData);
 
         clearInterval(progressInterval);
         setFiles((prev) =>
           prev.map((f) =>
             f.id === fileItem.id
-              ? { ...f, status: "success", progress: 100 }
+              ? { ...f, status: "success", progress: 100, uploadedDoc: response.data }
               : f
           )
         );
@@ -112,12 +112,15 @@ const UploadModal = ({ onClose, onSuccess }) => {
     setUploading(false);
 
     // Show success notification and reset for next upload
-    const successCount = files.filter((f) => f.status === "success").length;
-    if (successCount > 0) {
+    const successFiles = files.filter((f) => f.status === "success");
+    if (successFiles.length > 0) {
+      // Pass uploaded documents to parent for immediate update
+      const uploadedDocs = successFiles.map(f => f.uploadedDoc).filter(Boolean);
+      onSuccess(uploadedDocs);
+      // Reset files after a short delay for better UX
       setTimeout(() => {
-        onSuccess();
-        setFiles([]); // Reset files for next upload
-      }, 1000);
+        setFiles([]);
+      }, 1500);
     }
   };
 
@@ -233,6 +236,7 @@ const UploadModal = ({ onClose, onSuccess }) => {
 
         <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
           <button
+            type="button"
             onClick={onClose}
             className="btn-secondary"
             disabled={uploading}
@@ -240,7 +244,8 @@ const UploadModal = ({ onClose, onSuccess }) => {
             Cancel
           </button>
           <button
-            onClick={uploadFiles}
+            type="button"
+            onClick={(e) => uploadFiles(e)}
             disabled={!files.length || uploading}
             className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >

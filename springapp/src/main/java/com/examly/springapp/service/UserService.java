@@ -37,6 +37,11 @@ public class UserService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
 
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+    }
+
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }

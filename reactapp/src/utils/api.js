@@ -68,6 +68,9 @@ export const documentService = {
   getAll: (params = {}) => api.get("/documents", { params }),
   getById: (id) => api.get(`/documents/${id}`),
   create: (data) => api.post("/documents", data),
+  upload: (formData) => api.post("/documents/upload", formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
   update: (id, data) => api.put(`/documents/${id}`, data),
   rename: (id, title) => api.patch(`/documents/${id}`, { title }),
   delete: (id) => api.delete(`/documents/${id}`),

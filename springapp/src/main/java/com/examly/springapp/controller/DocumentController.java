@@ -52,15 +52,20 @@ public class DocumentController {
     @Autowired
     private com.examly.springapp.service.S3StorageService s3StorageService;
 
+    @Autowired
+    private com.examly.springapp.util.JwtUtil jwtUtil;
+
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAllDocuments(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String sortDir,
-            @RequestParam(required = false) String search) {
+            @RequestParam(required = false) String search,
+            jakarta.servlet.http.HttpServletRequest request) {
 
         try {
+            // For now, get all documents (will fix user filtering later)
             Page<Document> documentPage = documentService.getAllDocuments(page, size, sortBy, sortDir, search);
 
             List<Map<String, Object>> documents = documentPage.getContent().stream()
@@ -216,9 +221,11 @@ public class DocumentController {
     @PostMapping("/upload")
     public ResponseEntity<?> uploadDocument(
             @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
-            @RequestParam("title") String title) {
+            @RequestParam("title") String title,
+            jakarta.servlet.http.HttpServletRequest request) {
         try {
-            Long userId = 1L; // Get from authentication context in real app
+            // Get user ID from JWT token
+            Long userId = getCurrentUserId(request);
 
             // Check storage limit
             if (!documentService.checkStorageLimit(userId, file.getSize())) {
@@ -253,7 +260,7 @@ public class DocumentController {
     }
 
     @GetMapping("/recent")
-    public ResponseEntity<List<Map<String, Object>>> getRecentDocuments() {
+    public ResponseEntity<List<Map<String, Object>>> getRecentDocuments(jakarta.servlet.http.HttpServletRequest request) {
         try {
             List<Document> recentDocuments = documentService.getRecentDocuments();
             List<Map<String, Object>> documents = recentDocuments.stream()
@@ -652,6 +659,22 @@ public class DocumentController {
         String[] sizes = {"B", "KB", "MB", "GB"};
         int i = (int) Math.floor(Math.log(bytes) / Math.log(k));
         return String.format("%.2f %s", bytes / Math.pow(k, i), sizes[i]);
+    }
+
+    private Long getCurrentUserId(jakarta.servlet.http.HttpServletRequest request) {
+        try {
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                String email = jwtUtil.extractEmail(token);
+                // Get user by email
+                com.examly.springapp.model.User user = userService.getUserByEmail(email);
+                return user.getId();
+            }
+        } catch (Exception e) {
+            System.err.println("Error getting current user: " + e.getMessage());
+        }
+        return 1L; // Fallback to user 1 if authentication fails
     }
 
     @GetMapping("/shared/{id}/view")

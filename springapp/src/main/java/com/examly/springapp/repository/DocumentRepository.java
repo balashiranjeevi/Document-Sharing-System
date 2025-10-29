@@ -37,6 +37,10 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     Page<Document> findByTitleContainingIgnoreCaseAndDeletedAtIsNull(String title, Pageable pageable);
 
+    Page<Document> findByOwnerIdAndDeletedAtIsNull(Long ownerId, Pageable pageable);
+
+    Page<Document> findByOwnerIdAndTitleContainingIgnoreCaseAndDeletedAtIsNull(Long ownerId, String title, Pageable pageable);
+
     long countByCreatedAtAfter(java.time.LocalDateTime date);
 
     long countByCreatedAtAfterAndDeletedAtIsNull(java.time.LocalDateTime date);
@@ -62,6 +66,8 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     long getTotalStorage();
 
     List<Document> findByCreatedAtAfterAndDeletedAtIsNull(java.time.LocalDateTime date);
+
+    List<Document> findByOwnerIdAndCreatedAtAfterAndDeletedAtIsNull(Long ownerId, java.time.LocalDateTime date);
 
     boolean existsByFileUrlContaining(String fileName);
 }
