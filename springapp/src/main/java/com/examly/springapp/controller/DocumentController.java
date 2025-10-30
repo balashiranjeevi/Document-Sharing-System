@@ -25,7 +25,7 @@ import org.springframework.data.domain.Sort;
 
 @RestController
 @RequestMapping("/api/documents")
-@CrossOrigin(origins = "*", allowedHeaders = "*")
+// CORS handled by SecurityConfig
 public class DocumentController {
 
     @Autowired
