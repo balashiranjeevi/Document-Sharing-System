@@ -9,6 +9,11 @@ dist/
 build/
 *.log
 
+# Environment files with secrets
+.env.local
+.env.*.local
+springapp/.env
+
 # OS & IDE files
 .DS_Store
 Thumbs.db
